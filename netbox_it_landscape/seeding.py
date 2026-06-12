@@ -8,9 +8,8 @@ All operations are idempotent (get_or_create based).
 import re
 
 from django.utils.text import slugify
-
 from extras.models import Tag
-from ipam.models import IPAddress, Prefix, VLAN
+from ipam.models import VLAN, IPAddress, Prefix
 from virtualization.models import VirtualMachine, VMInterface
 
 from .choices import DOMAIN_COLOR_PALETTE

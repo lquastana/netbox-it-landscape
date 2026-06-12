@@ -6,10 +6,9 @@ import json
 import tempfile
 from pathlib import Path
 
+from dcim.models import Site
 from django.core.management import call_command
 from django.test import TestCase
-
-from dcim.models import Site
 from virtualization.models import VirtualMachine
 
 from netbox_it_landscape.models import (

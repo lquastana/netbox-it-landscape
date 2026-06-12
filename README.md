@@ -59,6 +59,28 @@ tags, and contextual panels injected on Site / VM / Device pages.
   summary on the Site page.
 - **it-landscape data import**: `import_it_landscape` management command.
 
+## Screenshots
+
+### KPI summary
+
+![KPI summary](docs/screenshots/kpi-summary.png)
+
+### Condensed business landscape
+
+![Business landscape](docs/screenshots/business-landscape.png)
+
+### Application view
+
+![Application view](docs/screenshots/application-view.png)
+
+### Flow view
+
+![Flow view](docs/screenshots/flow-view.png)
+
+### Facility comparison
+
+![Facility comparison](docs/screenshots/facility-comparison.png)
+
 ## Installation
 
 ```bash

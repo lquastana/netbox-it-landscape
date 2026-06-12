@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "netbox-it-landscape"
-version = "0.1.0"
-description = "Plugin NetBox : cartographie applicative hospitalière (vues métier, applicative et flux)"
+version = "0.2.0"
+description = "NetBox plugin for application landscape mapping, KPIs, facility comparison, and sector setup bundles"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
+license = "MIT"
 authors = [{ name = "Laurent Quastana" }]
 keywords = ["netbox", "netbox-plugin", "cartography", "application-landscape"]
 classifiers = [
@@ -24,3 +24,20 @@ include = ["netbox_it_landscape*"]
 
 [tool.setuptools.package-data]
 netbox_it_landscape = ["templates/**/*", "locale/**/*"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+exclude = ["netbox_it_landscape/migrations"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+# Bundle data files keep one entry per line for readability
+"netbox_it_landscape/bundles.py" = ["E501"]
+# URL tables keep one route per line
+"netbox_it_landscape/urls.py" = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["netbox_it_landscape"]

@@ -59,6 +59,28 @@ tags, et panneaux contextuels injectés sur les pages Site / VM / Device.
   synthèse cartographie sur la page Site.
 - **Import des données it-landscape** : commande `import_it_landscape`.
 
+## Captures d'écran
+
+### Synthèse KPI
+
+![Synthèse KPI](docs/screenshots/kpi-summary.png)
+
+### Vue métier paysage
+
+![Vue métier paysage](docs/screenshots/business-landscape.png)
+
+### Vue applicative
+
+![Vue applicative](docs/screenshots/application-view.png)
+
+### Vue flux
+
+![Vue flux](docs/screenshots/flow-view.png)
+
+### Comparaison d'établissements
+
+![Comparaison d'établissements](docs/screenshots/facility-comparison.png)
+
 ## Installation
 
 ```bash

@@ -1,212 +1,22 @@
-﻿from collections import OrderedDict
+from collections import OrderedDict
 
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.db.models import Count, Q
+from dcim.models import Site
+from django.db.models import Q
 from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _
-from django.views.generic import View
-from dcim.models import Site
-from netbox.views import generic
 
-from . import filtersets, forms, tables
-from .choices import CriticalityChoices, InterfaceTypeChoices, INTERFACE_HEX_COLORS
-from .models import Application, ApplicationFlow, BusinessDomain, BusinessProcess
-
-
-#
-# Domaines métier
-#
-
-class BusinessDomainListView(generic.ObjectListView):
-    queryset = BusinessDomain.objects.select_related('site').annotate(
-        process_count=Count('processes', distinct=True),
-    )
-    table = tables.BusinessDomainTable
-    filterset = filtersets.BusinessDomainFilterSet
-    filterset_form = forms.BusinessDomainFilterForm
-
-
-class BusinessDomainView(generic.ObjectView):
-    queryset = BusinessDomain.objects.select_related('site')
-
-    def get_extra_context(self, request, instance):
-        processes = instance.processes.annotate(
-            application_count=Count('applications', distinct=True),
-        )
-        return {
-            'process_table': tables.BusinessProcessTable(processes, exclude=('domain', 'site')),
-        }
-
-
-class BusinessDomainEditView(generic.ObjectEditView):
-    queryset = BusinessDomain.objects.all()
-    form = forms.BusinessDomainForm
-
-
-class BusinessDomainDeleteView(generic.ObjectDeleteView):
-    queryset = BusinessDomain.objects.all()
-
-
-class BusinessDomainBulkDeleteView(generic.BulkDeleteView):
-    queryset = BusinessDomain.objects.all()
-    table = tables.BusinessDomainTable
-    filterset = filtersets.BusinessDomainFilterSet
-
-
-#
-# Processus métier
-#
-
-class BusinessProcessListView(generic.ObjectListView):
-    queryset = BusinessProcess.objects.select_related('domain__site').annotate(
-        application_count=Count('applications', distinct=True),
-    )
-    table = tables.BusinessProcessTable
-    filterset = filtersets.BusinessProcessFilterSet
-    filterset_form = forms.BusinessProcessFilterForm
-
-
-class BusinessProcessView(generic.ObjectView):
-    queryset = BusinessProcess.objects.select_related('domain__site')
-
-    def get_extra_context(self, request, instance):
-        applications = instance.applications.prefetch_related('processes__domain__site')
-        return {
-            'application_table': tables.ApplicationTable(
-                applications, exclude=('processes',),
-            ),
-        }
-
-
-class BusinessProcessEditView(generic.ObjectEditView):
-    queryset = BusinessProcess.objects.all()
-    form = forms.BusinessProcessForm
-
-
-class BusinessProcessDeleteView(generic.ObjectDeleteView):
-    queryset = BusinessProcess.objects.all()
-
-
-class BusinessProcessBulkDeleteView(generic.BulkDeleteView):
-    queryset = BusinessProcess.objects.all()
-    table = tables.BusinessProcessTable
-    filterset = filtersets.BusinessProcessFilterSet
-
-
-#
-# Applications
-#
-
-class ApplicationListView(generic.ObjectListView):
-    queryset = Application.objects.prefetch_related('processes__domain__site')
-    table = tables.ApplicationTable
-    filterset = filtersets.ApplicationFilterSet
-    filterset_form = forms.ApplicationFilterForm
-
-
-class ApplicationView(generic.ObjectView):
-    queryset = Application.objects.prefetch_related(
-        'processes__domain__site', 'virtual_machines', 'devices',
-    )
-
-    def get_extra_context(self, request, instance):
-        outbound = instance.flows_as_source.select_related('site', 'source', 'target')
-        inbound = instance.flows_as_target.select_related('site', 'source', 'target')
-        return {
-            'outbound_table': tables.ApplicationFlowTable(outbound, exclude=('source',)),
-            'inbound_table': tables.ApplicationFlowTable(inbound, exclude=('target',)),
-        }
-
-
-class ApplicationEditView(generic.ObjectEditView):
-    queryset = Application.objects.all()
-    form = forms.ApplicationForm
-
-
-class ApplicationDeleteView(generic.ObjectDeleteView):
-    queryset = Application.objects.all()
-
-
-class ApplicationBulkDeleteView(generic.BulkDeleteView):
-    queryset = Application.objects.all()
-    table = tables.ApplicationTable
-    filterset = filtersets.ApplicationFilterSet
-
-
-#
-# Flux applicatifs
-#
-
-class ApplicationFlowListView(generic.ObjectListView):
-    queryset = ApplicationFlow.objects.select_related('site', 'source', 'target')
-    table = tables.ApplicationFlowTable
-    filterset = filtersets.ApplicationFlowFilterSet
-    filterset_form = forms.ApplicationFlowFilterForm
-
-
-class ApplicationFlowView(generic.ObjectView):
-    queryset = ApplicationFlow.objects.select_related('site', 'source', 'target')
-
-
-class ApplicationFlowEditView(generic.ObjectEditView):
-    queryset = ApplicationFlow.objects.all()
-    form = forms.ApplicationFlowForm
-
-
-class ApplicationFlowDeleteView(generic.ObjectDeleteView):
-    queryset = ApplicationFlow.objects.all()
-
-
-class ApplicationFlowBulkDeleteView(generic.BulkDeleteView):
-    queryset = ApplicationFlow.objects.all()
-    table = tables.ApplicationFlowTable
-    filterset = filtersets.ApplicationFlowFilterSet
-
-
-#
-# Vues cartographiques (reprises de l'application it-landscape)
-#
-
-def _interface_chips(app):
-    """Construit les pastilles d'interface (libellé + couleurs) d'une application."""
-    mapping = [
-        ('interface_administrative', _('Administrative'), InterfaceTypeChoices.ADMINISTRATIVE),
-        ('interface_medicale', _('Medical'), InterfaceTypeChoices.MEDICALE),
-        ('interface_facturation', _('Billing'), InterfaceTypeChoices.FACTURATION),
-        ('interface_planification', _('Scheduling'), InterfaceTypeChoices.PLANIFICATION),
-        ('interface_autre', _('Other'), InterfaceTypeChoices.AUTRE),
-    ]
-    chips = []
-    for field, label, key in mapping:
-        if getattr(app, field):
-            color = INTERFACE_HEX_COLORS[key]
-            chips.append({'label': label, 'color': color, 'bg': f'{color}22'})
-    return chips
-
-
-class BaseLandscapeView(LoginRequiredMixin, PermissionRequiredMixin, View):
-    """
-    Base for landscape views: anonymous users are redirected to the login
-    page, authenticated users without the required permission get a 403
-    (Django's AccessMixin default behaviour).
-    """
-
-
-def _landscape_filters(request):
-    site_id = request.GET.get('site_id') or ''
-    q = (request.GET.get('q') or '').strip()
-    criticality = request.GET.get('criticality') or ''
-    sites = Site.objects.filter(business_domains__isnull=False).distinct().order_by('name')
-    return site_id, q, criticality, sites
+from ..choices import INTERFACE_HEX_COLORS, CriticalityChoices, InterfaceTypeChoices
+from ..models import Application, ApplicationFlow, BusinessDomain, BusinessProcess
+from .base import BaseLandscapeView, interface_chips, landscape_filters
 
 
 class BusinessLandscapeView(BaseLandscapeView):
-    """Vue métier : établissements → domaines → processus → applications."""
+    """Business view: facilities → domains → processes → applications."""
     template_name = 'netbox_it_landscape/landscape/business.html'
     permission_required = 'netbox_it_landscape.view_application'
 
     def get(self, request):
-        site_id, q, criticality, sites_choices = _landscape_filters(request)
+        site_id, q, criticality, sites_choices = landscape_filters(request)
         view_mode = 'paysage' if request.GET.get('view') == 'paysage' else 'detail'
 
         applications = Application.objects.prefetch_related('processes__domain__site')
@@ -221,7 +31,7 @@ class BusinessLandscapeView(BaseLandscapeView):
                 | Q(editor__icontains=q)
             )
 
-        # Une application multi-site apparaît dans chacun de ses processus
+        # A multi-site application appears under each of its processes
         placements = []
         for app in applications:
             for process in app.processes.all():
@@ -251,7 +61,7 @@ class BusinessLandscapeView(BaseLandscapeView):
             process_entry['applications'].append({
                 'obj': app,
                 'is_critical': is_critical,
-                'chips': _interface_chips(app),
+                'chips': interface_chips(app),
             })
             if is_critical:
                 process_entry['critical_count'] += 1
@@ -260,7 +70,7 @@ class BusinessLandscapeView(BaseLandscapeView):
             domain_entry['app_count'] += 1
             site_entry['app_count'] += 1
 
-        # Conversion en listes pour le template
+        # Flatten for the template
         sites = []
         for site_entry in tree.values():
             domains = []
@@ -282,12 +92,12 @@ class BusinessLandscapeView(BaseLandscapeView):
 
 
 class ApplicativeLandscapeView(BaseLandscapeView):
-    """Vue applicative : une carte par application avec ses serveurs et établissements."""
+    """Application view: one card per application with its servers and facilities."""
     template_name = 'netbox_it_landscape/landscape/applicative.html'
     permission_required = 'netbox_it_landscape.view_application'
 
     def get(self, request):
-        site_id, q, criticality, sites_choices = _landscape_filters(request)
+        site_id, q, criticality, sites_choices = landscape_filters(request)
 
         applications = Application.objects.prefetch_related(
             'processes__domain__site',
@@ -347,7 +157,7 @@ class ApplicativeLandscapeView(BaseLandscapeView):
 
 
 class KpiLandscapeView(BaseLandscapeView):
-    """Synthèse KPI : compteurs, points d'attention, répartitions et hubs."""
+    """KPI summary: counters, attention points, breakdowns and hubs."""
     template_name = 'netbox_it_landscape/landscape/kpi.html'
     permission_required = (
         'netbox_it_landscape.view_application',
@@ -378,7 +188,7 @@ class KpiLandscapeView(BaseLandscapeView):
         def pct(part, total):
             return round(100 * part / total) if total else 0
 
-        # ── Compteurs clés ────────────────────────────────────────────────
+        # ── Key counters ──────────────────────────────────────────────────
         critical_apps = [a for a in apps if a.criticality == CriticalityChoices.CRITICAL]
         multi_apps = [a for a in apps if a.is_multi_site]
         apps_with_servers = [
@@ -397,7 +207,7 @@ class KpiLandscapeView(BaseLandscapeView):
             'processes': processes.count(),
         }
 
-        # ── Points d'attention ────────────────────────────────────────────
+        # ── Attention points ──────────────────────────────────────────────
         no_server = [a for a in apps if not len(a.virtual_machines.all()) and not len(a.devices.all())]
         attention = [
             {
@@ -442,7 +252,7 @@ class KpiLandscapeView(BaseLandscapeView):
             item['count'] = item.get('count_override', len(item['apps']))
             item['preview'] = [a.name for a in item['apps'][:5]]
 
-        # ── Répartition criticité (donut CSS) ─────────────────────────────
+        # ── Criticality donut (pure CSS) ──────────────────────────────────
         crit_pct = kpis['critical_pct']
         criticality_donut = {
             'critical': len(critical_apps),
@@ -451,7 +261,7 @@ class KpiLandscapeView(BaseLandscapeView):
             'gradient': f'#dc2626 0% {crit_pct}%, #64748b {crit_pct}% 100%',
         }
 
-        # ── Flux par type d'interface ─────────────────────────────────────
+        # ── Flows by interface type ───────────────────────────────────────
         interface_counts = OrderedDict()
         for value, label, _color in InterfaceTypeChoices.CHOICES:
             interface_counts[value] = {'label': label, 'count': 0, 'color': INTERFACE_HEX_COLORS[value]}
@@ -464,7 +274,7 @@ class KpiLandscapeView(BaseLandscapeView):
             for item in interface_counts.values() if item['count']
         ]
 
-        # ── Dépendance EAI ────────────────────────────────────────────────
+        # ── EAI dependency ────────────────────────────────────────────────
         eai_counts = {}
         for flow in flows:
             key = flow.eai.strip() if flow.eai else 'Direct'
@@ -479,7 +289,7 @@ class KpiLandscapeView(BaseLandscapeView):
         ]
         eai_dependency_pct = pct(eai_flows, total_flows)
 
-        # ── Top éditeurs ──────────────────────────────────────────────────
+        # ── Top vendors ───────────────────────────────────────────────────
         editor_counts = {}
         for app in apps:
             if app.editor:
@@ -491,7 +301,7 @@ class KpiLandscapeView(BaseLandscapeView):
             for name, count in editor_list
         ]
 
-        # ── Top applications connectées (hubs de flux) ────────────────────
+        # ── Most connected applications (flow hubs) ───────────────────────
         degree = {}
         for flow in flows:
             for app, direction in ((flow.source, 'out'), (flow.target, 'in')):
@@ -503,7 +313,7 @@ class KpiLandscapeView(BaseLandscapeView):
             hub['total'] = hub['in'] + hub['out']
             hub['pct'] = pct(hub['total'], max_degree)
 
-        # ── Applications par établissement ────────────────────────────────
+        # ── Applications per facility ─────────────────────────────────────
         site_counts = OrderedDict()
         for app in apps:
             for site in app.site_list:
@@ -532,7 +342,7 @@ class KpiLandscapeView(BaseLandscapeView):
 
 
 class FluxLandscapeView(BaseLandscapeView):
-    """Vue flux : table filtrable et diagramme source → cible."""
+    """Flow view: filterable table and source → target diagram."""
     template_name = 'netbox_it_landscape/landscape/flux.html'
     permission_required = 'netbox_it_landscape.view_applicationflow'
 
@@ -596,7 +406,7 @@ class FluxLandscapeView(BaseLandscapeView):
         })
 
     def _build_diagram(self, flows):
-        """Diagramme bipartite : applications sources à gauche, cibles à droite."""
+        """Bipartite diagram: source applications on the left, targets on the right."""
         if not flows:
             return None
 
@@ -661,131 +471,6 @@ class FluxLandscapeView(BaseLandscapeView):
             'right_nodes': right_nodes,
             'edges': edges,
         }
-
-
-class SetupWizardView(BaseLandscapeView):
-    """Setup wizard: apply a sector modeling bundle to a (new or existing) site."""
-    template_name = 'netbox_it_landscape/landscape/wizard.html'
-    permission_required = (
-        'netbox_it_landscape.add_businessdomain',
-        'netbox_it_landscape.add_businessprocess',
-    )
-
-    # Permissions required by each optional seeding step. The wizard creates
-    # objects outside the plugin (dcim / ipam / virtualization / extras), so
-    # the user must hold those rights explicitly — no privilege escalation.
-    INFRA_PERMS = (
-        'virtualization.add_virtualmachine',
-        'virtualization.add_vminterface',
-        'ipam.add_vlan',
-        'ipam.add_prefix',
-        'ipam.add_ipaddress',
-        'extras.add_tag',
-    )
-
-    def _option_permissions(self, user):
-        return {
-            'with_apps': user.has_perm('netbox_it_landscape.add_application'),
-            'with_flows': user.has_perm('netbox_it_landscape.add_applicationflow'),
-            'with_infra': all(user.has_perm(perm) for perm in self.INFRA_PERMS),
-            'create_site': user.has_perm('dcim.add_site'),
-        }
-
-    def _bundle_cards(self):
-        from .bundles import BUNDLES
-        return [
-            {
-                'key': key,
-                'label': bundle['label'],
-                'description': bundle['description'],
-                'icon': bundle.get('icon', 'mdi-sitemap'),
-                'domain_count': len(bundle['domains']),
-                'process_count': sum(len(d['processes']) for d in bundle['domains']),
-                'app_count': len(bundle['applications']),
-                'vm_count': len(bundle.get('vms', [])),
-                'vlan_count': len(bundle.get('vlans', [])),
-                'flow_count': len(bundle.get('flows', [])),
-            }
-            for key, bundle in BUNDLES.items()
-        ]
-
-    def get(self, request):
-        from .forms import SetupWizardForm
-        return render(request, self.template_name, {
-            'form': SetupWizardForm(),
-            'bundles': self._bundle_cards(),
-            'option_perms': self._option_permissions(request.user),
-        })
-
-    def post(self, request):
-        from django.utils.text import slugify
-        from .bundles import BUNDLES
-        from .forms import SetupWizardForm
-        from .seeding import apply_bundle
-
-        option_perms = self._option_permissions(request.user)
-        form = SetupWizardForm(request.POST)
-        if not form.is_valid():
-            return render(request, self.template_name, {
-                'form': form,
-                'bundles': self._bundle_cards(),
-                'option_perms': option_perms,
-            })
-
-        bundle = BUNDLES[form.cleaned_data['bundle']]
-        site_name = form.cleaned_data['site_name'].strip()
-        site = Site.objects.filter(name__iexact=site_name).first()
-
-        # Server-side enforcement of per-option permissions
-        permission_errors = []
-        if form.cleaned_data['with_apps'] and not option_perms['with_apps']:
-            permission_errors.append(_('You do not have permission to create applications.'))
-        if form.cleaned_data['with_flows'] and not option_perms['with_flows']:
-            permission_errors.append(_('You do not have permission to create application flows.'))
-        if form.cleaned_data['with_infra'] and not option_perms['with_infra']:
-            permission_errors.append(_(
-                'You do not have permission to create the sample infrastructure '
-                '(virtual machines, VLANs, prefixes, IP addresses, tags).'
-            ))
-        if not site and not option_perms['create_site']:
-            permission_errors.append(_(
-                'This site does not exist and you do not have permission to create sites.'
-            ))
-        if permission_errors:
-            return render(request, self.template_name, {
-                'form': form,
-                'bundles': self._bundle_cards(),
-                'option_perms': option_perms,
-                'permission_errors': permission_errors,
-            }, status=403)
-
-        site_created = False
-        if not site:
-            site = Site.objects.create(
-                name=site_name,
-                slug=slugify(site_name)[:100],
-                status='active',
-            )
-            site_created = True
-
-        stats = apply_bundle(
-            site, bundle,
-            with_apps=form.cleaned_data['with_apps'],
-            with_infra=form.cleaned_data['with_infra'],
-            with_flows=form.cleaned_data['with_flows'],
-        )
-
-        return render(request, self.template_name, {
-            'form': SetupWizardForm(),
-            'bundles': self._bundle_cards(),
-            'option_perms': option_perms,
-            'result': {
-                'site': site,
-                'site_created': site_created,
-                'bundle_label': bundle['label'],
-                'stats': stats,
-            },
-        })
 
 
 class ComparisonLandscapeView(BaseLandscapeView):

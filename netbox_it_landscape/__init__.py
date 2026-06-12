@@ -8,7 +8,7 @@ class ITLandscapeConfig(PluginConfig):
         "Cartographie applicative hospitalière intégrée à NetBox : "
         "vues métier, applicative et flux."
     )
-    version = '0.1.0'
+    version = '0.2.0'
     author = 'Laurent Quastana'
     base_url = 'it-landscape'
     min_version = '4.0'

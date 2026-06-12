@@ -2,11 +2,12 @@
 Setup wizard tests: bundle application, idempotence, and per-option
 permission enforcement (no privilege escalation to dcim/ipam objects).
 """
+from dcim.models import Site
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from django.urls import reverse
-
-from dcim.models import Site
+from extras.models import JournalEntry
 from ipam.models import VLAN
 from virtualization.models import VirtualMachine
 
@@ -68,6 +69,14 @@ class SetupWizardTests(TestCase):
         # Sample VMs get a primary IP
         self.assertTrue(
             VirtualMachine.objects.filter(primary_ip4__isnull=False).exists()
+        )
+        site_type = ContentType.objects.get_for_model(Site)
+        self.assertTrue(
+            JournalEntry.objects.filter(
+                assigned_object_type=site_type,
+                assigned_object_id=site.pk,
+                comments__icontains='IT Landscape setup wizard',
+            ).exists()
         )
 
     def test_bundle_application_is_idempotent(self):

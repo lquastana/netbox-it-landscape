@@ -34,7 +34,11 @@ class BusinessProcessTable(NetBoxTable):
 
 
 SITE_LIST_TEMPLATE = """
-{% for s in record.site_list %}<a href="{{ s.get_absolute_url }}">{{ s }}</a>{% if not forloop.last %}, {% endif %}{% empty %}&mdash;{% endfor %}
+{% for s in record.site_list %}
+  <a href="{{ s.get_absolute_url }}">{{ s }}</a>{% if not forloop.last %}, {% endif %}
+{% empty %}
+  &mdash;
+{% endfor %}
 """
 
 

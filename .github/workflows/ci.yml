@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install ruff
+        run: pip install ruff
+      - name: Run ruff
+        run: ruff check netbox_it_landscape
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - netbox-version: v4.3.7
+            experimental: false
+          - netbox-version: v4.4.10
+            experimental: false
+          - netbox-version: v4.5.10
+            experimental: true
+    continue-on-error: ${{ matrix.experimental }}
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: netbox
+          POSTGRES_PASSWORD: netbox
+          POSTGRES_DB: netbox
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U netbox"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout plugin
+        uses: actions/checkout@v4
+        with:
+          path: plugin
+
+      - name: Checkout NetBox ${{ matrix.netbox-version }}
+        uses: actions/checkout@v4
+        with:
+          repository: netbox-community/netbox
+          ref: ${{ matrix.netbox-version }}
+          path: netbox
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: netbox/requirements.txt
+
+      - name: Install NetBox and the plugin
+        run: |
+          pip install -r netbox/requirements.txt
+          pip install ./plugin
+
+      - name: Configure NetBox
+        run: cp plugin/.github/configuration.testing.py netbox/netbox/netbox/configuration.py
+
+      - name: Run plugin tests
+        working-directory: netbox/netbox
+        run: python manage.py test netbox_it_landscape.tests -v 2

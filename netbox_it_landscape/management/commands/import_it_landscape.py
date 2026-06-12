@@ -13,17 +13,16 @@ Le répertoire doit contenir les fichiers du dépôt it-landscape :
 import json
 from pathlib import Path
 
+from dcim.models import Site
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.text import slugify
-
-from dcim.models import Site
 from extras.models import Tag
-from ipam.models import IPAddress, Prefix, VLAN
+from ipam.models import VLAN, IPAddress, Prefix
 from virtualization.models import VirtualMachine, VMInterface
 
 from netbox_it_landscape.choices import (
-    CriticalityChoices,
     DOMAIN_COLOR_PALETTE,
+    CriticalityChoices,
     InterfaceTypeChoices,
 )
 from netbox_it_landscape.models import (

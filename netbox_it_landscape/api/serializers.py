@@ -1,7 +1,6 @@
-from rest_framework import serializers
-
 from dcim.api.serializers import DeviceSerializer, SiteSerializer
 from netbox.api.serializers import NetBoxModelSerializer
+from rest_framework import serializers
 from virtualization.api.serializers import VirtualMachineSerializer
 
 from ..models import Application, ApplicationFlow, BusinessDomain, BusinessProcess

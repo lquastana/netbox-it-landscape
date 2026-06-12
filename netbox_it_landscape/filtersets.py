@@ -1,6 +1,6 @@
 import django_filters
-from django.db.models import Q
 from dcim.models import Site
+from django.db.models import Q
 from netbox.filtersets import NetBoxModelFilterSet
 
 from .choices import CriticalityChoices, InterfaceTypeChoices
