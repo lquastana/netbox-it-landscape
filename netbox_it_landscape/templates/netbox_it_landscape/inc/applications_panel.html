@@ -1,9 +1,10 @@
+﻿{% load i18n %}
 <div class="card">
-  <h2 class="card-header">Applications (IT Landscape)</h2>
+  <h2 class="card-header">{% trans "Applications (IT Landscape)" %}</h2>
   {% if applications %}
     <table class="table table-hover">
       <thead>
-        <tr><th>Application</th><th>Établissements</th><th>Criticité</th></tr>
+        <tr><th>{% trans "Application" %}</th><th>{% trans "Establishments" %}</th><th>{% trans "Criticality" %}</th></tr>
       </thead>
       <tbody>
         {% for app in applications %}
@@ -16,6 +17,6 @@
       </tbody>
     </table>
   {% else %}
-    <div class="card-body text-muted">Aucune application associée</div>
+    <div class="card-body text-muted">{% trans "No associated application" %}</div>
   {% endif %}
 </div>

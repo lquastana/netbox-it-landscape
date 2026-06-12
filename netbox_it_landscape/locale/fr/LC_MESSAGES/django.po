@@ -1,0 +1,624 @@
+# French translation of the netbox-it-landscape plugin.
+# Copyright (C) 2026 Laurent Quastana
+# This file is distributed under the same license as the netbox-it-landscape package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: netbox-it-landscape 0.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-12 14:02+0000\n"
+"PO-Revision-Date: 2026-06-12 14:10+0000\n"
+"Last-Translator: Laurent Quastana\n"
+"Language-Team: French\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "Hospital information system (SIH)"
+msgstr "Système d'information hospitalier (SIH)"
+
+msgid "French hospital IS modeling: patient administration, EHR, pharmacy, emergency, imaging, billing, HR and technical tools — with HL7/DICOM flows through an integration engine (EAI)."
+msgstr "Modélisation d'un SI hospitalier : gestion administrative du patient, DPI, pharmacie, urgences, imagerie, facturation, RH et outils techniques — avec des flux HL7/DICOM via un moteur d'intégration (EAI)."
+
+msgid "Manufacturing / Industry"
+msgstr "Industrie / Manufacturing"
+
+msgid "Industrial IS modeling: ERP, MES, SCADA, warehouse and transport management, quality (LIMS), PLM, HR — with OPC-UA, EDI and API flows through an ESB."
+msgstr "Modélisation d'un SI industriel : ERP, MES, SCADA, gestion d'entrepôt et de transport, qualité (LIMS), PLM, RH — avec des flux OPC-UA, EDI et API via un ESB."
+
+msgid "Critical"
+msgstr "Critique"
+
+msgid "Standard"
+msgstr "Standard"
+
+msgid "Administrative"
+msgstr "Administrative"
+
+msgid "Medical"
+msgstr "Médicale"
+
+msgid "Billing"
+msgstr "Facturation"
+
+msgid "Scheduling"
+msgstr "Planification"
+
+msgid "Other"
+msgstr "Autre"
+
+msgid "Establishment"
+msgstr "Établissement"
+
+msgid "Domain"
+msgstr "Domaine"
+
+msgid "Processes"
+msgstr "Processus"
+
+msgid "Business attachments — several processes allowed, including in different facilities (multi-site)"
+msgstr "Rattachements métier — plusieurs processus possibles, y compris dans des établissements différents (multi-site)"
+
+msgid "Virtual machines"
+msgstr "Machines virtuelles"
+
+msgid "Devices"
+msgstr "Équipements"
+
+msgid "Process"
+msgstr "Processus"
+
+msgid "Criticality"
+msgstr "Criticité"
+
+msgid "Modeling bundle"
+msgstr "Bundle de modélisation"
+
+msgid "Facility / site name"
+msgstr "Nom de l'établissement / du site"
+
+msgid "An existing site with this name will be reused, otherwise it is created"
+msgstr "Un site existant portant ce nom sera réutilisé, sinon il sera créé"
+
+msgid "Load sample applications"
+msgstr "Charger les applications d'exemple"
+
+msgid "Load sample infrastructure (VLANs, networks, virtual machines)"
+msgstr "Charger l'infrastructure d'exemple (VLAN, réseaux, machines virtuelles)"
+
+msgid "Load sample application flows"
+msgstr "Charger les flux applicatifs d'exemple"
+
+msgid "Source application"
+msgstr "Application source"
+
+msgid "Target application"
+msgstr "Application cible"
+
+msgid "Interface type"
+msgstr "Type d'interface"
+
+msgid "Protocol"
+msgstr "Protocole"
+
+msgid "EAI"
+msgstr "EAI"
+
+msgid "Name"
+msgstr "Nom"
+
+msgid "Description"
+msgstr "Description"
+
+msgid "Color"
+msgstr "Couleur"
+
+msgid "business domain"
+msgstr "domaine métier"
+
+msgid "business domains"
+msgstr "domaines métier"
+
+msgid "business process"
+msgstr "processus métier"
+
+msgid "business processes"
+msgstr "processus métier"
+
+msgid "Vendor"
+msgstr "Éditeur"
+
+msgid "Contact person"
+msgstr "Référent"
+
+msgid "Hosting"
+msgstr "Hébergement"
+
+msgid "Hosting location (facility, SaaS, …)"
+msgstr "Lieu d'hébergement (établissement, SaaS, …)"
+
+msgid "Monitoring URL"
+msgstr "URL de supervision"
+
+msgid "Link to the monitoring tool (PRTG, Centreon, …)"
+msgstr "Lien vers l'outil de supervision (PRTG, Centreon, …)"
+
+msgid "Administrative interface"
+msgstr "Interface administrative"
+
+msgid "Medical interface"
+msgstr "Interface médicale"
+
+msgid "Billing interface"
+msgstr "Interface facturation"
+
+msgid "Scheduling interface"
+msgstr "Interface planification"
+
+msgid "Other interface"
+msgstr "Interface autre"
+
+msgid "application"
+msgstr "application"
+
+msgid "applications"
+msgstr "applications"
+
+msgid "Identifier"
+msgstr "Identifiant"
+
+msgid "Functional flow identifier (e.g. VDL-FLX-001)"
+msgstr "Identifiant fonctionnel du flux (ex. VDL-FLX-001)"
+
+msgid "Facility where this flow is in place"
+msgstr "Établissement dans lequel ce flux est en place"
+
+msgid "Port"
+msgstr "Port"
+
+msgid "Message type"
+msgstr "Type de message"
+
+msgid "Integration engine carrying the flow (or \"Direct\")"
+msgstr "Moteur d'intégration assurant le transport (ou « Direct »)"
+
+msgid "application flow"
+msgstr "flux applicatif"
+
+msgid "application flows"
+msgstr "flux applicatifs"
+
+msgid "KPI summary"
+msgstr "Synthèse KPI"
+
+msgid "Business view"
+msgstr "Vue métier"
+
+msgid "Application view"
+msgstr "Vue applicative"
+
+msgid "Flow view"
+msgstr "Vue flux"
+
+msgid "Facility comparison"
+msgstr "Comparaison d'établissements"
+
+msgid "Business domains"
+msgstr "Domaines métier"
+
+msgid "Add"
+msgstr "Ajouter"
+
+msgid "Business processes"
+msgstr "Processus métier"
+
+msgid "Applications"
+msgstr "Applications"
+
+msgid "Application flows"
+msgstr "Flux applicatifs"
+
+msgid "Setup wizard"
+msgstr "Assistant d'initialisation"
+
+msgid "Cartography"
+msgstr "Cartographie"
+
+msgid "Referential"
+msgstr "Référentiel"
+
+msgid "Administration"
+msgstr "Administration"
+
+msgid "Establishments"
+msgstr "Établissements"
+
+msgid "Multi-site"
+msgstr "Multi-site"
+
+msgid "Source"
+msgstr "Source"
+
+msgid "Target"
+msgstr "Cible"
+
+msgid "Application"
+msgstr "Application"
+
+msgid "Monitoring"
+msgstr "Supervision"
+
+msgid "Active interfaces"
+msgstr "Interfaces actives"
+
+msgid "No active interface"
+msgstr "Aucune interface active"
+
+msgid "Primary IP"
+msgstr "IP principale"
+
+msgid "Cluster"
+msgstr "Cluster"
+
+msgid "No associated virtual machine"
+msgstr "Aucune machine virtuelle associée"
+
+msgid "Site"
+msgstr "Site"
+
+msgid "No associated device"
+msgstr "Aucun équipement associé"
+
+msgid "Outbound flows"
+msgstr "Flux sortants"
+
+msgid "Inbound flows"
+msgstr "Flux entrants"
+
+msgid "Application flow"
+msgstr "Flux applicatif"
+
+msgid "Business domain"
+msgstr "Domaine métier"
+
+msgid "Business process"
+msgstr "Processus métier"
+
+msgid "Applications (IT Landscape)"
+msgstr "Applications (IT Landscape)"
+
+msgid "No associated application"
+msgstr "Aucune application associée"
+
+msgid "Summary"
+msgstr "Synthèse"
+
+msgid "Referential applications with their servers and facilities"
+msgstr "Applications du référentiel avec serveurs et établissements associés"
+
+msgid "All"
+msgstr "Tous"
+
+msgid "Search"
+msgstr "Recherche"
+
+msgid "Application, server, IP…"
+msgstr "Application, serveur, IP…"
+
+msgid "Filter"
+msgstr "Filtrer"
+
+msgid "No application matches these criteria."
+msgstr "Aucune application ne correspond à ces critères."
+
+msgid "servers"
+msgstr "serveurs"
+
+msgid "No business attachment"
+msgstr "Aucun rattachement métier"
+
+msgid "Server"
+msgstr "Serveur"
+
+msgid "Type"
+msgstr "Type"
+
+msgid "IP"
+msgstr "IP"
+
+msgid "Role"
+msgstr "Rôle"
+
+msgid "No attached server"
+msgstr "Aucun serveur rattaché"
+
+msgid "Condensed landscape view"
+msgstr "Vue paysage condensée"
+
+msgid "Facilities, domains, processes and applications"
+msgstr "Établissements, domaines, processus et applications"
+
+msgid "Display mode"
+msgstr "Mode d'affichage"
+
+msgid "Detailed"
+msgstr "Détaillée"
+
+msgid "Landscape"
+msgstr "Paysage"
+
+msgid "Name, vendor…"
+msgstr "Nom, éditeur…"
+
+msgid "Reset"
+msgstr "Réinitialiser"
+
+#, python-format
+msgid "Use the <a href=\"%(wizard_url)s\">setup wizard</a> or import your data with <code>manage.py import_it_landscape</code>."
+msgstr "Utilisez l'<a href=\"%(wizard_url)s\">assistant d'initialisation</a> ou importez vos données avec <code>manage.py import_it_landscape</code>."
+
+msgid "domains"
+msgstr "domaines"
+
+msgid "critical"
+msgstr "critiques"
+
+msgid "apps"
+msgstr "apps"
+
+msgid "processes"
+msgstr "processus"
+
+msgid "No description."
+msgstr "Description non renseignée."
+
+msgid "Hosting not specified"
+msgstr "Hébergement non renseigné"
+
+msgid "Application portfolio similarity and mutualization opportunities"
+msgstr "Similarité des parcs applicatifs et opportunités de mutualisation"
+
+msgid "Compare"
+msgstr "Comparer"
+
+msgid "At least two facilities with a business cartography are required for comparison."
+msgstr "Au moins deux établissements avec une cartographie métier sont nécessaires pour la comparaison."
+
+msgid "Facilities compared"
+msgstr "Établissements comparés"
+
+msgid "Average similarity"
+msgstr "Similarité moyenne"
+
+msgid "Jaccard index on application portfolios"
+msgstr "Indice de Jaccard sur les parcs applicatifs"
+
+msgid "Mutualized applications"
+msgstr "Applications mutualisées"
+
+msgid "deployed on at least two facilities"
+msgstr "déployées sur au moins deux établissements"
+
+msgid "Convergence opportunities"
+msgstr "Opportunités de convergence"
+
+msgid "same process, different applications"
+msgstr "même processus, applications différentes"
+
+msgid "Similarity matrix"
+msgstr "Matrice de similarité"
+
+msgid "Shared applications / total applications of each pair"
+msgstr "Applications communes / total des applications de chaque paire"
+
+msgid "shared"
+msgstr "communes"
+
+msgid "Mutualization opportunities"
+msgstr "Opportunités de mutualisation"
+
+msgid "Identical processes covered by different applications — candidates for convergence"
+msgstr "Processus identiques couverts par des applications différentes — candidats à la convergence"
+
+msgid "Applications by facility"
+msgstr "Applications par établissement"
+
+msgid "Distinct products"
+msgstr "Produits distincts"
+
+msgid "No divergence detected: shared processes use the same applications everywhere."
+msgstr "Aucune divergence détectée : les processus partagés utilisent partout les mêmes applications."
+
+msgid "Already mutualized"
+msgstr "Déjà mutualisé"
+
+msgid "Coverage"
+msgstr "Couverture"
+
+msgid "No application is shared between the selected facilities."
+msgstr "Aucune application n'est partagée entre les établissements sélectionnés."
+
+msgid "Facility-specific applications"
+msgstr "Applications spécifiques à un établissement"
+
+msgid "deployed on a single facility"
+msgstr "déployées sur un seul établissement"
+
+msgid "Application flows: source, target, protocol, message and EAI"
+msgstr "Flux applicatifs : source, cible, protocole, message et EAI"
+
+msgid "Application, message…"
+msgstr "Application, message…"
+
+msgid "Source → target diagram"
+msgstr "Diagramme source → cible"
+
+#, python-format
+msgid "%(counter)s flow"
+msgid_plural "%(counter)s flows"
+msgstr[0] "%(counter)s flux"
+msgstr[1] "%(counter)s flux"
+
+msgid "No flow matches these criteria."
+msgstr "Aucun flux ne correspond à ces critères."
+
+msgid "Flow list"
+msgstr "Liste des flux"
+
+msgid "Message"
+msgstr "Message"
+
+msgid "Interface"
+msgstr "Interface"
+
+msgid "Steering indicators for the application landscape"
+msgstr "Indicateurs de pilotage de la cartographie applicative"
+
+#, python-format
+msgid "%(pct)s%% of the portfolio"
+msgstr "%(pct)s%% du parc applicatif"
+
+#, python-format
+msgid "%(pct)s%% of applications"
+msgstr "%(pct)s%% des applications"
+
+#, python-format
+msgid "%(pct)s%% through an EAI"
+msgstr "%(pct)s%% via un EAI"
+
+msgid "Server coverage"
+msgstr "Couverture serveurs"
+
+msgid "applications with at least one attached server"
+msgstr "applications avec au moins un serveur rattaché"
+
+msgid "Attention points"
+msgstr "Points d'attention"
+
+msgid "Criticality breakdown"
+msgstr "Répartition par criticité"
+
+msgid "Flows by interface type"
+msgstr "Flux par type d'interface"
+
+msgid "No flow"
+msgstr "Aucun flux"
+
+msgid "EAI dependency"
+msgstr "Dépendance aux EAI"
+
+#, python-format
+msgid "%(pct)s%% of flows"
+msgstr "%(pct)s%% des flux"
+
+msgid "Share of flows carried by an integration engine — an unavailable EAI interrupts all its flows."
+msgstr "Part des flux transitant par un moteur d'intégration — un EAI indisponible interrompt tous ses flux."
+
+msgid "Most connected applications"
+msgstr "Applications les plus connectées"
+
+msgid "Maximum potential impact in case of incident (inbound + outbound flows)."
+msgstr "Impact potentiel maximal en cas d'incident (flux entrants + sortants)."
+
+msgid "Top vendors"
+msgstr "Top éditeurs"
+
+msgid "No vendor recorded"
+msgstr "Aucun éditeur renseigné"
+
+msgid "Applications per facility"
+msgstr "Applications par établissement"
+
+#, python-format
+msgid "incl. %(critical)s critical"
+msgstr "dont %(critical)s critiques"
+
+msgid "Bootstrap your cartography with a ready-to-use sector modeling bundle and sample data."
+msgstr "Démarrez votre cartographie avec un bundle de modélisation sectoriel prêt à l'emploi et des données d'exemple."
+
+msgid "You do not have permission to use the setup wizard."
+msgstr "Vous n'avez pas la permission d'utiliser l'assistant d'initialisation."
+
+msgid "Bundle applied successfully"
+msgstr "Bundle appliqué avec succès"
+
+#, python-format
+msgid "Bundle “%(bundle)s” applied to <strong>%(site)s</strong>"
+msgstr "Bundle « %(bundle)s » appliqué à <strong>%(site)s</strong>"
+
+msgid "site created"
+msgstr "site créé"
+
+msgid "flows"
+msgstr "flux"
+
+msgid "VMs"
+msgstr "VM"
+
+msgid "VLANs"
+msgstr "VLAN"
+
+msgid "prefixes"
+msgstr "préfixes"
+
+msgid "Site page"
+msgstr "Page du site"
+
+msgid "Choose a modeling bundle"
+msgstr "Choisir un bundle de modélisation"
+
+msgid "Target facility"
+msgstr "Établissement cible"
+
+msgid "e.g. CH Sainte-Marie, Usine de Lyon…"
+msgstr "ex. CH Sainte-Marie, Usine de Lyon…"
+
+msgid "Sample data"
+msgstr "Données d'exemple"
+
+msgid "Without sample data, only the domain / process structure is created."
+msgstr "Sans données d'exemple, seule la structure domaines / processus est créée."
+
+msgid "Apply bundle"
+msgstr "Appliquer le bundle"
+
+msgid "Physical"
+msgstr "Physique"
+
+msgid "Critical applications without attached server"
+msgstr "Applications critiques sans serveur rattaché"
+
+msgid "Infrastructure incident impact cannot be simulated"
+msgstr "Impossible de simuler l'impact d'un incident infrastructure"
+
+msgid "Critical applications without monitoring"
+msgstr "Applications critiques sans supervision"
+
+msgid "No monitoring URL (PRTG, Centreon…) recorded"
+msgstr "Aucune URL de supervision (PRTG, Centreon…) renseignée"
+
+msgid "Applications without business attachment"
+msgstr "Applications sans rattachement métier"
+
+msgid "No associated process — invisible in the business view"
+msgstr "Aucun processus associé — invisibles dans la vue métier"
+
+msgid "Applications without contact person"
+msgstr "Applications sans référent"
+
+msgid "Nobody to call in case of incident"
+msgstr "Personne à contacter en cas d'incident"
+
+msgid "Applications without vendor"
+msgstr "Applications sans éditeur renseigné"
+
+msgid "Referential quality to complete"
+msgstr "Qualité du référentiel à compléter"
+
+msgid "Flows without protocol"
+msgstr "Flux sans protocole"
+
+msgid "Incomplete technical documentation"
+msgstr "Documentation technique incomplète"

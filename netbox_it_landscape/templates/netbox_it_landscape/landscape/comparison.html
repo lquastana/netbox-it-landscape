@@ -1,0 +1,231 @@
+﻿{% extends 'base/layout.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Facility comparison" %}{% endblock %}
+
+{% block content %}
+<style>
+  .itl-toolbar { display: flex; flex-wrap: wrap; gap: .75rem; align-items: end; margin-bottom: 1.25rem; }
+  .itl-site-checks { display: flex; flex-wrap: wrap; gap: .8rem; }
+
+  .itl-kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .7rem; margin-bottom: 1rem; }
+  .itl-kpi {
+    border: 1px solid var(--tblr-border-color); border-radius: .6rem;
+    background: var(--tblr-bg-surface); padding: .8rem .9rem;
+    border-top: 4px solid var(--tblr-primary, #1b75bc);
+  }
+  .itl-kpi.is-green { border-top-color: #16a34a; }
+  .itl-kpi.is-orange { border-top-color: #f59e0b; }
+  .itl-kpi .itl-kpi-value { font-size: 1.7rem; font-weight: 700; color: var(--tblr-body-color); line-height: 1.1; }
+  .itl-kpi .itl-kpi-label { font-size: .78rem; font-weight: 600; color: var(--tblr-body-color); margin-bottom: .15rem; }
+  .itl-kpi .itl-kpi-sub { font-size: .72rem; color: var(--tblr-secondary, var(--tblr-muted)); }
+
+  .itl-panel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: .8rem; align-items: start; }
+  .itl-panel { border: 1px solid var(--tblr-border-color); border-radius: .6rem; background: var(--tblr-bg-surface); }
+  .itl-panel.is-wide { grid-column: 1 / -1; }
+  .itl-panel-header { padding: .6rem .85rem; border-bottom: 1px solid var(--tblr-border-color); display: flex; justify-content: space-between; align-items: center; }
+  .itl-panel-header h2 { margin: 0; font-size: .92rem; }
+  .itl-panel-header .itl-hint { font-size: .7rem; color: var(--tblr-secondary, var(--tblr-muted)); }
+  .itl-panel-body { padding: .7rem .85rem; }
+
+  .itl-matrix { border-collapse: collapse; width: 100%; font-size: .8rem; }
+  .itl-matrix th, .itl-matrix td { padding: .45rem .6rem; text-align: center; border: 1px solid var(--tblr-border-color); }
+  .itl-matrix th { color: var(--tblr-body-color); }
+  .itl-matrix th small { display: block; font-weight: 400; color: var(--tblr-secondary, var(--tblr-muted)); }
+  .itl-matrix td.itl-self { background: color-mix(in srgb, var(--tblr-border-color) 35%, transparent); }
+  .itl-matrix td .itl-score { font-weight: 700; color: var(--tblr-body-color); }
+  .itl-matrix td .itl-common { display: block; font-size: .65rem; color: var(--tblr-secondary, var(--tblr-muted)); }
+
+  .itl-table { font-size: .8rem; }
+  .itl-table td, .itl-table th { vertical-align: top; }
+  .itl-opp-apps { font-size: .74rem; }
+  .itl-opp-apps strong { display: block; color: var(--tblr-secondary, var(--tblr-muted)); font-size: .68rem; font-weight: 600; }
+  .itl-coverage-track { background: color-mix(in srgb, var(--tblr-border-color) 50%, transparent); border-radius: 99px; height: .55rem; min-width: 70px; overflow: hidden; }
+  .itl-coverage-fill { height: 100%; border-radius: 99px; background: #16a34a; }
+
+  @media print {
+    .itl-toolbar form, #navbar, .navbar, footer { display: none !important; }
+    .itl-panel { break-inside: avoid; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+
+<div class="itl-toolbar">
+  <div class="me-auto">
+    <h1 class="mb-0">{% trans "Facility comparison" %}</h1>
+    <div class="text-muted">{% trans "Application portfolio similarity and mutualization opportunities" %}</div>
+  </div>
+  <form method="get" class="d-flex flex-wrap gap-3 align-items-center">
+    <div class="itl-site-checks">
+      {% for site in all_sites %}
+        <label class="form-check mb-0">
+          <input type="checkbox" name="site_id" value="{{ site.pk }}" class="form-check-input"
+                 {% if site.pk|stringformat:'s' in selected_ids %}checked{% endif %}>
+          <span class="form-check-label">{{ site.name }}</span>
+        </label>
+      {% endfor %}
+    </div>
+    <button type="submit" class="btn btn-sm btn-primary">{% trans "Compare" %}</button>
+  </form>
+</div>
+
+{% if sites|length < 2 %}
+  <div class="alert alert-info">{% trans "At least two facilities with a business cartography are required for comparison." %}</div>
+{% else %}
+
+  <div class="itl-kpi-row">
+    <div class="itl-kpi">
+      <div class="itl-kpi-label">{% trans "Facilities compared" %}</div>
+      <div class="itl-kpi-value">{{ sites|length }}</div>
+    </div>
+    <div class="itl-kpi {% if avg_similarity >= 50 %}is-green{% else %}is-orange{% endif %}">
+      <div class="itl-kpi-label">{% trans "Average similarity" %}</div>
+      <div class="itl-kpi-value">{{ avg_similarity }}%</div>
+      <div class="itl-kpi-sub">{% trans "Jaccard index on application portfolios" %}</div>
+    </div>
+    <div class="itl-kpi is-green">
+      <div class="itl-kpi-label">{% trans "Mutualized applications" %}</div>
+      <div class="itl-kpi-value">{{ mutualized_count }}</div>
+      <div class="itl-kpi-sub">{% trans "deployed on at least two facilities" %}</div>
+    </div>
+    <div class="itl-kpi is-orange">
+      <div class="itl-kpi-label">{% trans "Convergence opportunities" %}</div>
+      <div class="itl-kpi-value">{{ opportunities|length }}</div>
+      <div class="itl-kpi-sub">{% trans "same process, different applications" %}</div>
+    </div>
+  </div>
+
+  <div class="itl-panel-grid">
+
+    {# ── Similarity matrix ─────────────────────────────────────────── #}
+    <div class="itl-panel is-wide">
+      <div class="itl-panel-header">
+        <h2>{% trans "Similarity matrix" %}</h2>
+        <span class="itl-hint">{% trans "Shared applications / total applications of each pair" %}</span>
+      </div>
+      <div class="itl-panel-body" style="overflow-x: auto;">
+        <table class="itl-matrix">
+          <thead>
+            <tr>
+              <th></th>
+              {% for row in matrix %}
+                <th>{{ row.site.name }}<small>{{ row.count }} {% trans "apps" %}</small></th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in matrix %}
+              <tr>
+                <th>{{ row.site.name }}</th>
+                {% for cell in row.cells %}
+                  {% if cell.self %}
+                    <td class="itl-self">—</td>
+                  {% else %}
+                    <td style="background: color-mix(in srgb, #16a34a {{ cell.score }}%, transparent);">
+                      <span class="itl-score">{{ cell.score }}%</span>
+                      <span class="itl-common">{{ cell.common }} {% trans "shared" %}</span>
+                    </td>
+                  {% endif %}
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {# ── Convergence opportunities ─────────────────────────────────── #}
+    <div class="itl-panel is-wide">
+      <div class="itl-panel-header">
+        <h2>{% trans "Mutualization opportunities" %}</h2>
+        <span class="itl-hint">{% trans "Identical processes covered by different applications — candidates for convergence" %}</span>
+      </div>
+      <div class="itl-panel-body">
+        {% if opportunities %}
+          <table class="table table-hover itl-table">
+            <thead>
+              <tr>
+                <th>{% trans "Process" %}</th>
+                <th>{% trans "Applications by facility" %}</th>
+                <th>{% trans "Distinct products" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for opp in opportunities %}
+                <tr>
+                  <td><strong>{{ opp.process }}</strong></td>
+                  <td>
+                    <div class="d-flex flex-wrap gap-3">
+                      {% for col in opp.columns %}
+                        <div class="itl-opp-apps">
+                          <strong>{{ col.site }}</strong>
+                          {{ col.apps|join:', ' }}
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </td>
+                  <td><span class="badge text-bg-orange">{{ opp.distinct_apps }}</span></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="text-muted">{% trans "No divergence detected: shared processes use the same applications everywhere." %}</div>
+        {% endif %}
+      </div>
+    </div>
+
+    {# ── Already mutualized ────────────────────────────────────────── #}
+    <div class="itl-panel">
+      <div class="itl-panel-header">
+        <h2>{% trans "Already mutualized" %}</h2>
+        <span class="itl-hint">{{ mutualized_count }}</span>
+      </div>
+      <div class="itl-panel-body">
+        {% if mutualized %}
+          <table class="table table-hover itl-table">
+            <thead>
+              <tr><th>{% trans "Application" %}</th><th>{% trans "Coverage" %}</th><th>{% trans "Establishments" %}</th></tr>
+            </thead>
+            <tbody>
+              {% for entry in mutualized %}
+                <tr>
+                  <td><a href="{{ entry.app.get_absolute_url }}">{{ entry.app.name }}</a></td>
+                  <td>
+                    <div class="itl-coverage-track" title="{{ entry.coverage }}%">
+                      <div class="itl-coverage-fill" style="width: {{ entry.coverage }}%;"></div>
+                    </div>
+                  </td>
+                  <td class="text-muted" style="font-size: .72rem;">{{ entry.sites|join:', ' }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="text-muted">{% trans "No application is shared between the selected facilities." %}</div>
+        {% endif %}
+      </div>
+    </div>
+
+    {# ── Site-specific applications ────────────────────────────────── #}
+    <div class="itl-panel">
+      <div class="itl-panel-header">
+        <h2>{% trans "Facility-specific applications" %}</h2>
+        <span class="itl-hint">{% trans "deployed on a single facility" %}</span>
+      </div>
+      <div class="itl-panel-body">
+        {% for panel in unique_panels %}
+          <div class="mb-2">
+            <strong style="font-size: .8rem;">{{ panel.site.name }}</strong>
+            <span class="badge text-bg-secondary">{{ panel.apps|length }}</span>
+            <div class="text-muted" style="font-size: .74rem;">
+              {% for app in panel.apps %}<a href="{{ app.get_absolute_url }}">{{ app.name }}</a>{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+{% endif %}
+{% endblock %}

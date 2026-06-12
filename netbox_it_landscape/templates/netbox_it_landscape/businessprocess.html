@@ -1,27 +1,28 @@
-{% extends 'generic/object.html' %}
+﻿{% extends 'generic/object.html' %}
 {% load helpers %}
+{% load i18n %}
 {% load render_table from django_tables2 %}
 
 {% block content %}
   <div class="row">
     <div class="col col-12 col-md-6">
       <div class="card">
-        <h2 class="card-header">Processus métier</h2>
+        <h2 class="card-header">{% trans "Business process" %}</h2>
         <table class="table table-hover attr-table">
           <tr>
-            <th scope="row">Nom</th>
+            <th scope="row">{% trans "Name" %}</th>
             <td>{{ object.name }}</td>
           </tr>
           <tr>
-            <th scope="row">Domaine</th>
+            <th scope="row">{% trans "Domain" %}</th>
             <td>{{ object.domain|linkify }}</td>
           </tr>
           <tr>
-            <th scope="row">Établissement</th>
+            <th scope="row">{% trans "Establishment" %}</th>
             <td>{{ object.domain.site|linkify }}</td>
           </tr>
           <tr>
-            <th scope="row">Description</th>
+            <th scope="row">{% trans "Description" %}</th>
             <td>{{ object.description|placeholder }}</td>
           </tr>
         </table>
@@ -35,7 +36,7 @@
   <div class="row">
     <div class="col col-12">
       <div class="card">
-        <h2 class="card-header">Applications</h2>
+        <h2 class="card-header">{% trans "Applications" %}</h2>
         {% render_table application_table %}
       </div>
     </div>

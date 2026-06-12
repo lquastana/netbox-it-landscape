@@ -1,6 +1,7 @@
-{% extends 'base/layout.html' %}
+﻿{% extends 'base/layout.html' %}
+{% load i18n %}
 
-{% block title %}Vue applicative{% endblock %}
+{% block title %}{% trans "Application view" %}{% endblock %}
 
 {% block content %}
 <style>
@@ -21,38 +22,38 @@
 
 <div class="itl-toolbar">
   <div class="me-auto">
-    <h1 class="mb-0">Vue applicative</h1>
-    <div class="text-muted">Applications du référentiel avec serveurs et établissements associés</div>
+    <h1 class="mb-0">{% trans "Application view" %}</h1>
+    <div class="text-muted">{% trans "Referential applications with their servers and facilities" %}</div>
   </div>
   <form method="get" class="d-flex flex-wrap gap-2 align-items-end">
     <div>
-      <label class="form-label mb-1">Établissement</label>
+      <label class="form-label mb-1">{% trans "Establishment" %}</label>
       <select name="site_id" class="form-select form-select-sm">
-        <option value="">Tous</option>
+        <option value="">{% trans "All" %}</option>
         {% for site in sites_choices %}
           <option value="{{ site.pk }}" {% if filter_site_id == site.pk|stringformat:'s' %}selected{% endif %}>{{ site.name }}</option>
         {% endfor %}
       </select>
     </div>
     <div>
-      <label class="form-label mb-1">Criticité</label>
+      <label class="form-label mb-1">{% trans "Criticality" %}</label>
       <select name="criticality" class="form-select form-select-sm">
-        <option value="">Toutes</option>
+        <option value="">{% trans "All" %}</option>
         {% for choice in criticality_choices %}
           <option value="{{ choice.0 }}" {% if filter_criticality == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
         {% endfor %}
       </select>
     </div>
     <div>
-      <label class="form-label mb-1">Recherche</label>
-      <input type="text" name="q" value="{{ filter_q }}" class="form-control form-control-sm" placeholder="Application, serveur, IP…">
+      <label class="form-label mb-1">{% trans "Search" %}</label>
+      <input type="text" name="q" value="{{ filter_q }}" class="form-control form-control-sm" placeholder="{% trans 'Application, server, IP…' %}">
     </div>
-    <button type="submit" class="btn btn-sm btn-primary">Filtrer</button>
+    <button type="submit" class="btn btn-sm btn-primary">{% trans "Filter" %}</button>
   </form>
 </div>
 
 {% if not groups %}
-  <div class="alert alert-info">Aucune application ne correspond à ces critères.</div>
+  <div class="alert alert-info">{% trans "No application matches these criteria." %}</div>
 {% endif %}
 
 <div class="itl-group-grid">
@@ -63,19 +64,19 @@
           <a href="{{ group.app.get_absolute_url }}">{{ group.name }}</a>
         </h3>
         <div class="d-flex gap-2">
-          {% if group.is_multi_site %}<span class="badge text-bg-purple">Multi-site</span>{% endif %}
-          {% if group.has_critical %}<span class="badge text-bg-red">Critique</span>{% endif %}
-          <span class="badge text-bg-blue">{{ group.servers|length }} serveur{{ group.servers|length|pluralize }}</span>
+          {% if group.is_multi_site %}<span class="badge text-bg-purple">{% trans "Multi-site" %}</span>{% endif %}
+          {% if group.has_critical %}<span class="badge text-bg-red">{% trans "Critical" %}</span>{% endif %}
+          <span class="badge text-bg-blue">{{ group.servers|length }} {% trans "servers" %}</span>
         </div>
       </div>
       <div class="itl-group-body">
         <div class="itl-sites mb-2">
-          {{ group.sites|join:' · '|default:'Aucun rattachement métier' }}
+          {{ group.sites|join:' · '|default:_('No business attachment') }}
         </div>
         {% if group.servers %}
           <table class="table table-sm itl-server-table">
             <thead>
-              <tr><th>Serveur</th><th>Type</th><th>IP</th><th>Rôle</th></tr>
+              <tr><th>{% trans "Server" %}</th><th>{% trans "Type" %}</th><th>{% trans "IP" %}</th><th>{% trans "Role" %}</th></tr>
             </thead>
             <tbody>
               {% for server in group.servers %}
@@ -89,7 +90,7 @@
             </tbody>
           </table>
         {% else %}
-          <div class="text-muted" style="font-size: .78rem;">Aucun serveur rattaché</div>
+          <div class="text-muted" style="font-size: .78rem;">{% trans "No attached server" %}</div>
         {% endif %}
       </div>
     </section>

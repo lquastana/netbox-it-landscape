@@ -1,8 +1,9 @@
-from collections import OrderedDict
+﻿from collections import OrderedDict
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count, Q
 from django.shortcuts import render
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import View
 from dcim.models import Site
 from netbox.views import generic
@@ -169,11 +170,11 @@ class ApplicationFlowBulkDeleteView(generic.BulkDeleteView):
 def _interface_chips(app):
     """Construit les pastilles d'interface (libellé + couleurs) d'une application."""
     mapping = [
-        ('interface_administrative', 'Administrative', InterfaceTypeChoices.ADMINISTRATIVE),
-        ('interface_medicale', 'Médicale', InterfaceTypeChoices.MEDICALE),
-        ('interface_facturation', 'Facturation', InterfaceTypeChoices.FACTURATION),
-        ('interface_planification', 'Planification', InterfaceTypeChoices.PLANIFICATION),
-        ('interface_autre', 'Autre', InterfaceTypeChoices.AUTRE),
+        ('interface_administrative', _('Administrative'), InterfaceTypeChoices.ADMINISTRATIVE),
+        ('interface_medicale', _('Medical'), InterfaceTypeChoices.MEDICALE),
+        ('interface_facturation', _('Billing'), InterfaceTypeChoices.FACTURATION),
+        ('interface_planification', _('Scheduling'), InterfaceTypeChoices.PLANIFICATION),
+        ('interface_autre', _('Other'), InterfaceTypeChoices.AUTRE),
     ]
     chips = []
     for field, label, key in mapping:
@@ -310,7 +311,7 @@ class ApplicativeLandscapeView(LoginRequiredMixin, View):
             ] + [
                 {
                     'obj': device,
-                    'kind': 'Physique',
+                    'kind': _('Physical'),
                     'ip': str(device.primary_ip4.address.ip) if device.primary_ip4 else '',
                     'role': device.role.name if device.role else '',
                 }
@@ -386,38 +387,38 @@ class KpiLandscapeView(LoginRequiredMixin, View):
         no_server = [a for a in apps if not len(a.virtual_machines.all()) and not len(a.devices.all())]
         attention = [
             {
-                'label': 'Applications critiques sans serveur rattaché',
-                'detail': "Impossible de simuler l'impact d'un incident infrastructure",
+                'label': _('Critical applications without attached server'),
+                'detail': _('Infrastructure incident impact cannot be simulated'),
                 'apps': [a for a in no_server if a.criticality == CriticalityChoices.CRITICAL],
                 'severity': 'red',
             },
             {
-                'label': 'Applications critiques sans supervision',
-                'detail': 'Aucune URL de supervision (PRTG, Centreon…) renseignée',
+                'label': _('Critical applications without monitoring'),
+                'detail': _('No monitoring URL (PRTG, Centreon…) recorded'),
                 'apps': [a for a in critical_apps if not a.monitoring_url],
                 'severity': 'red',
             },
             {
-                'label': 'Applications sans rattachement métier',
-                'detail': 'Aucun processus associé — invisibles dans la vue métier',
+                'label': _('Applications without business attachment'),
+                'detail': _('No associated process — invisible in the business view'),
                 'apps': [a for a in apps if not len(a.processes.all())],
                 'severity': 'orange',
             },
             {
-                'label': 'Applications sans référent',
-                'detail': 'Personne à contacter en cas d’incident',
+                'label': _('Applications without contact person'),
+                'detail': _('Nobody to call in case of incident'),
                 'apps': [a for a in apps if not a.referent],
                 'severity': 'orange',
             },
             {
-                'label': 'Applications sans éditeur renseigné',
-                'detail': 'Qualité du référentiel à compléter',
+                'label': _('Applications without vendor'),
+                'detail': _('Referential quality to complete'),
                 'apps': [a for a in apps if not a.editor],
                 'severity': 'yellow',
             },
             {
-                'label': 'Flux sans protocole',
-                'detail': 'Documentation technique incomplète',
+                'label': _('Flows without protocol'),
+                'detail': _('Incomplete technical documentation'),
                 'apps': [],
                 'count_override': len([f for f in flows if not f.protocol]),
                 'severity': 'yellow',
@@ -645,3 +646,197 @@ class FluxLandscapeView(LoginRequiredMixin, View):
             'right_nodes': right_nodes,
             'edges': edges,
         }
+
+
+class SetupWizardView(LoginRequiredMixin, View):
+    """Setup wizard: apply a sector modeling bundle to a (new or existing) site."""
+    template_name = 'netbox_it_landscape/landscape/wizard.html'
+
+    def _check_permission(self, request):
+        return request.user.has_perm('netbox_it_landscape.add_businessdomain')
+
+    def _bundle_cards(self):
+        from .bundles import BUNDLES
+        return [
+            {
+                'key': key,
+                'label': bundle['label'],
+                'description': bundle['description'],
+                'icon': bundle.get('icon', 'mdi-sitemap'),
+                'domain_count': len(bundle['domains']),
+                'process_count': sum(len(d['processes']) for d in bundle['domains']),
+                'app_count': len(bundle['applications']),
+                'vm_count': len(bundle.get('vms', [])),
+                'vlan_count': len(bundle.get('vlans', [])),
+                'flow_count': len(bundle.get('flows', [])),
+            }
+            for key, bundle in BUNDLES.items()
+        ]
+
+    def get(self, request):
+        from .forms import SetupWizardForm
+        if not self._check_permission(request):
+            return render(request, self.template_name, {'forbidden': True}, status=403)
+        return render(request, self.template_name, {
+            'form': SetupWizardForm(),
+            'bundles': self._bundle_cards(),
+        })
+
+    def post(self, request):
+        from django.utils.text import slugify
+        from .bundles import BUNDLES
+        from .forms import SetupWizardForm
+        from .seeding import apply_bundle
+
+        if not self._check_permission(request):
+            return render(request, self.template_name, {'forbidden': True}, status=403)
+
+        form = SetupWizardForm(request.POST)
+        if not form.is_valid():
+            return render(request, self.template_name, {
+                'form': form,
+                'bundles': self._bundle_cards(),
+            })
+
+        bundle = BUNDLES[form.cleaned_data['bundle']]
+        site_name = form.cleaned_data['site_name'].strip()
+        site = Site.objects.filter(name__iexact=site_name).first()
+        site_created = False
+        if not site:
+            site = Site.objects.create(
+                name=site_name,
+                slug=slugify(site_name)[:100],
+                status='active',
+            )
+            site_created = True
+
+        stats = apply_bundle(
+            site, bundle,
+            with_apps=form.cleaned_data['with_apps'],
+            with_infra=form.cleaned_data['with_infra'],
+            with_flows=form.cleaned_data['with_flows'],
+        )
+
+        return render(request, self.template_name, {
+            'form': SetupWizardForm(),
+            'bundles': self._bundle_cards(),
+            'result': {
+                'site': site,
+                'site_created': site_created,
+                'bundle_label': bundle['label'],
+                'stats': stats,
+            },
+        })
+
+
+class ComparisonLandscapeView(LoginRequiredMixin, View):
+    """Facility comparison: similarity matrix and mutualization opportunities."""
+    template_name = 'netbox_it_landscape/landscape/comparison.html'
+
+    def get(self, request):
+        all_sites = list(
+            Site.objects.filter(business_domains__isnull=False).distinct().order_by('name')
+        )
+        selected_ids = request.GET.getlist('site_id')
+        if selected_ids:
+            sites = [s for s in all_sites if str(s.pk) in selected_ids]
+        else:
+            sites = all_sites
+        if len(sites) < 2:
+            sites = all_sites
+
+        site_pks = {s.pk for s in sites}
+        applications = Application.objects.prefetch_related('processes__domain__site')
+
+        # Application → deployed sites / process names (restricted to selection)
+        app_entries = []
+        apps_by_site = {s.pk: set() for s in sites}
+        process_map = {}  # normalized process name → {site_pk: set(app names)}
+        for app in applications:
+            deployed = set()
+            for process in app.processes.all():
+                spk = process.domain.site_id
+                if spk not in site_pks:
+                    continue
+                deployed.add(spk)
+                apps_by_site[spk].add(app.pk)
+                key = process.name.strip().lower()
+                entry = process_map.setdefault(key, {'label': process.name, 'sites': {}})
+                entry['sites'].setdefault(spk, set()).add(app.name)
+            if deployed:
+                app_entries.append({'app': app, 'site_pks': deployed})
+
+        def jaccard(a, b):
+            union = a | b
+            if not union:
+                return 0
+            return round(100 * len(a & b) / len(union))
+
+        # Similarity matrix
+        matrix = []
+        pair_scores = []
+        for site_a in sites:
+            cells = []
+            for site_b in sites:
+                if site_a.pk == site_b.pk:
+                    cells.append({'self': True})
+                    continue
+                score = jaccard(apps_by_site[site_a.pk], apps_by_site[site_b.pk])
+                common = len(apps_by_site[site_a.pk] & apps_by_site[site_b.pk])
+                cells.append({'self': False, 'score': score, 'common': common, 'other': site_b})
+                if site_a.pk < site_b.pk:
+                    pair_scores.append(score)
+            matrix.append({'site': site_a, 'cells': cells, 'count': len(apps_by_site[site_a.pk])})
+
+        avg_similarity = round(sum(pair_scores) / len(pair_scores)) if pair_scores else 0
+
+        # Already mutualized: applications deployed on ≥ 2 selected sites
+        mutualized = sorted(
+            (e for e in app_entries if len(e['site_pks']) > 1),
+            key=lambda e: (-len(e['site_pks']), e['app'].name.lower()),
+        )
+        site_names = {s.pk: s.name for s in sites}
+        for entry in mutualized:
+            entry['sites'] = sorted(site_names[pk] for pk in entry['site_pks'])
+            entry['coverage'] = round(100 * len(entry['site_pks']) / len(sites)) if sites else 0
+
+        # Mutualization opportunities: same process, different applications
+        opportunities = []
+        for entry in process_map.values():
+            per_site = entry['sites']
+            if len(per_site) < 2:
+                continue
+            app_sets = list(per_site.values())
+            if all(s == app_sets[0] for s in app_sets[1:]):
+                continue  # already harmonized
+            opportunities.append({
+                'process': entry['label'],
+                'columns': [
+                    {'site': site_names[pk], 'apps': sorted(apps)}
+                    for pk, apps in sorted(per_site.items(), key=lambda kv: site_names[kv[0]])
+                ],
+                'distinct_apps': len(set().union(*app_sets)),
+            })
+        opportunities.sort(key=lambda o: (-o['distinct_apps'], o['process'].lower()))
+
+        # Site-specific applications (deployed on exactly one selected site)
+        unique_by_site = {s.pk: [] for s in sites}
+        for entry in app_entries:
+            if len(entry['site_pks']) == 1:
+                unique_by_site[next(iter(entry['site_pks']))].append(entry['app'])
+        unique_panels = [
+            {'site': s, 'apps': sorted(unique_by_site[s.pk], key=lambda a: a.name.lower())}
+            for s in sites
+        ]
+
+        return render(request, self.template_name, {
+            'all_sites': all_sites,
+            'sites': sites,
+            'selected_ids': [str(s.pk) for s in sites],
+            'matrix': matrix,
+            'avg_similarity': avg_similarity,
+            'mutualized': mutualized,
+            'mutualized_count': len(mutualized),
+            'opportunities': opportunities,
+            'unique_panels': unique_panels,
+        })

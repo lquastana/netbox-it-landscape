@@ -1,6 +1,7 @@
-{% extends 'base/layout.html' %}
+﻿{% extends 'base/layout.html' %}
+{% load i18n %}
 
-{% block title %}Vue flux{% endblock %}
+{% block title %}{% trans "Flow view" %}{% endblock %}
 
 {% block content %}
 <style>
@@ -16,51 +17,51 @@
 
 <div class="itl-toolbar">
   <div class="me-auto">
-    <h1 class="mb-0">Vue flux</h1>
-    <div class="text-muted">Flux applicatifs : source, cible, protocole, message et EAI</div>
+    <h1 class="mb-0">{% trans "Flow view" %}</h1>
+    <div class="text-muted">{% trans "Application flows: source, target, protocol, message and EAI" %}</div>
   </div>
   <form method="get" class="d-flex flex-wrap gap-2 align-items-end">
     <div>
-      <label class="form-label mb-1">Établissement</label>
+      <label class="form-label mb-1">{% trans "Establishment" %}</label>
       <select name="site_id" class="form-select form-select-sm">
-        <option value="">Tous</option>
+        <option value="">{% trans "All" %}</option>
         {% for site in sites_choices %}
           <option value="{{ site.pk }}" {% if filter_site_id == site.pk|stringformat:'s' %}selected{% endif %}>{{ site.name }}</option>
         {% endfor %}
       </select>
     </div>
     <div>
-      <label class="form-label mb-1">Type d'interface</label>
+      <label class="form-label mb-1">{% trans "Interface type" %}</label>
       <select name="interface_type" class="form-select form-select-sm">
-        <option value="">Tous</option>
+        <option value="">{% trans "All" %}</option>
         {% for choice in interface_choices %}
           <option value="{{ choice.0 }}" {% if filter_interface_type == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
         {% endfor %}
       </select>
     </div>
     <div>
-      <label class="form-label mb-1">Protocole</label>
+      <label class="form-label mb-1">{% trans "Protocol" %}</label>
       <select name="protocol" class="form-select form-select-sm">
-        <option value="">Tous</option>
+        <option value="">{% trans "All" %}</option>
         {% for p in protocols %}
           <option value="{{ p }}" {% if filter_protocol == p %}selected{% endif %}>{{ p }}</option>
         {% endfor %}
       </select>
     </div>
     <div>
-      <label class="form-label mb-1">EAI</label>
+      <label class="form-label mb-1">{% trans "EAI" %}</label>
       <select name="eai" class="form-select form-select-sm">
-        <option value="">Tous</option>
+        <option value="">{% trans "All" %}</option>
         {% for e in eais %}
           <option value="{{ e }}" {% if filter_eai == e %}selected{% endif %}>{{ e }}</option>
         {% endfor %}
       </select>
     </div>
     <div>
-      <label class="form-label mb-1">Recherche</label>
-      <input type="text" name="q" value="{{ filter_q }}" class="form-control form-control-sm" placeholder="Trigramme, message…">
+      <label class="form-label mb-1">{% trans "Search" %}</label>
+      <input type="text" name="q" value="{{ filter_q }}" class="form-control form-control-sm" placeholder="{% trans 'Application, message…' %}">
     </div>
-    <button type="submit" class="btn btn-sm btn-primary">Filtrer</button>
+    <button type="submit" class="btn btn-sm btn-primary">{% trans "Filter" %}</button>
   </form>
 </div>
 
@@ -73,8 +74,8 @@
 {% if svg %}
   <div class="card mb-3">
     <div class="card-header d-flex justify-content-between">
-      <h2 class="mb-0" style="font-size: 1rem;">Diagramme source → cible</h2>
-      <span class="text-muted">{{ flows|length }} flux</span>
+      <h2 class="mb-0" style="font-size: 1rem;">{% trans "Source → target diagram" %}</h2>
+      <span class="text-muted">{% blocktrans count counter=flows|length %}{{ counter }} flow{% plural %}{{ counter }} flows{% endblocktrans %}</span>
     </div>
     <div class="card-body itl-diagram">
       <svg viewBox="0 0 {{ svg.width }} {{ svg.height }}" width="{{ svg.width }}" height="{{ svg.height }}" xmlns="http://www.w3.org/2000/svg">
@@ -103,24 +104,24 @@
     </div>
   </div>
 {% else %}
-  <div class="alert alert-info">Aucun flux ne correspond à ces critères.</div>
+  <div class="alert alert-info">{% trans "No flow matches these criteria." %}</div>
 {% endif %}
 
 {% if flows %}
   <div class="card">
-    <h2 class="card-header" style="font-size: 1rem;">Liste des flux</h2>
+    <h2 class="card-header" style="font-size: 1rem;">{% trans "Flow list" %}</h2>
     <table class="table table-hover itl-flow-table">
       <thead>
         <tr>
-          <th>Identifiant</th>
-          <th>Source</th>
-          <th>Cible</th>
-          <th>Protocole</th>
-          <th>Port</th>
-          <th>Message</th>
-          <th>Interface</th>
-          <th>EAI</th>
-          <th>Description</th>
+          <th>{% trans "Identifier" %}</th>
+          <th>{% trans "Source" %}</th>
+          <th>{% trans "Target" %}</th>
+          <th>{% trans "Protocol" %}</th>
+          <th>{% trans "Port" %}</th>
+          <th>{% trans "Message" %}</th>
+          <th>{% trans "Interface" %}</th>
+          <th>{% trans "EAI" %}</th>
+          <th>{% trans "Description" %}</th>
         </tr>
       </thead>
       <tbody>

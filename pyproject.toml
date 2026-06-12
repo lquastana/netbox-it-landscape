@@ -23,4 +23,4 @@ Source = "https://github.com/lquastana/netbox-it-landscape"
 include = ["netbox_it_landscape*"]
 
 [tool.setuptools.package-data]
-netbox_it_landscape = ["templates/**/*"]
+netbox_it_landscape = ["templates/**/*", "locale/**/*"]

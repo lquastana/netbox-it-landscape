@@ -39,6 +39,20 @@ et panneaux contextuels injectés sur les pages Site / VM / Device.
 - **Recherche globale NetBox** : applications, flux, domaines, processus indexés.
 - **Panneaux contextuels** : applications affichées sur les pages VM / Device,
   synthèse cartographie sur la page Site.
+- **Synthèse KPI** (`/plugins/it-landscape/synthese/`) : compteurs clés,
+  points d'attention (critiques sans serveur/supervision…), dépendance EAI,
+  applications les plus connectées, top éditeurs.
+- **Comparaison d'établissements** (`/plugins/it-landscape/comparaison/`) :
+  matrice de similarité (Jaccard), applications déjà mutualisées,
+  **opportunités de convergence** (même processus, applications différentes),
+  spécificités par établissement.
+- **Assistant d'initialisation** (`/plugins/it-landscape/initialisation/`) :
+  bundles de modélisation prêts à l'emploi — **SIH** (hôpital : GAP, DPI,
+  pharmacie, imagerie… avec flux HL7/DICOM) et **Industrie** (ERP, MES,
+  SCADA, WMS… avec flux OPC-UA/EDI) — structure domaines/processus +
+  applications, VLAN, VM et flux d'exemple, en un clic.
+- **Multilingue** : interface en anglais, traduction française complète
+  (suivant la langue de l'utilisateur NetBox).
 - **Import des données it-landscape** : commande `import_it_landscape`.
 
 ## Installation

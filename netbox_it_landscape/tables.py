@@ -1,14 +1,15 @@
-import django_tables2 as tables
+﻿import django_tables2 as tables
+from django.utils.translation import gettext_lazy as _
 from netbox.tables import ChoiceFieldColumn, NetBoxTable, columns
 
 from .models import Application, ApplicationFlow, BusinessDomain, BusinessProcess
 
 
 class BusinessDomainTable(NetBoxTable):
-    name = tables.Column(linkify=True, verbose_name='Nom')
-    site = tables.Column(linkify=True, verbose_name='Établissement')
-    color = columns.ColorColumn(verbose_name='Couleur')
-    process_count = tables.Column(verbose_name='Processus')
+    name = tables.Column(linkify=True, verbose_name=_('Name'))
+    site = tables.Column(linkify=True, verbose_name=_('Establishment'))
+    color = columns.ColorColumn(verbose_name=_('Color'))
+    process_count = tables.Column(verbose_name=_('Processes'))
     tags = columns.TagColumn(url_name='plugins:netbox_it_landscape:businessdomain_list')
 
     class Meta(NetBoxTable.Meta):
@@ -18,12 +19,12 @@ class BusinessDomainTable(NetBoxTable):
 
 
 class BusinessProcessTable(NetBoxTable):
-    name = tables.Column(linkify=True, verbose_name='Nom')
-    domain = tables.Column(linkify=True, verbose_name='Domaine')
+    name = tables.Column(linkify=True, verbose_name=_('Name'))
+    domain = tables.Column(linkify=True, verbose_name=_('Domain'))
     site = tables.Column(
-        accessor='domain__site', linkify=True, verbose_name='Établissement',
+        accessor='domain__site', linkify=True, verbose_name=_('Establishment'),
     )
-    application_count = tables.Column(verbose_name='Applications')
+    application_count = tables.Column(verbose_name=_('Applications'))
     tags = columns.TagColumn(url_name='plugins:netbox_it_landscape:businessprocess_list')
 
     class Meta(NetBoxTable.Meta):
@@ -38,15 +39,15 @@ SITE_LIST_TEMPLATE = """
 
 
 class ApplicationTable(NetBoxTable):
-    name = tables.Column(linkify=True, verbose_name='Nom')
-    processes = tables.ManyToManyColumn(linkify_item=True, verbose_name='Processus')
+    name = tables.Column(linkify=True, verbose_name=_('Name'))
+    processes = tables.ManyToManyColumn(linkify_item=True, verbose_name=_('Processes'))
     sites = tables.TemplateColumn(
         template_code=SITE_LIST_TEMPLATE,
-        verbose_name='Établissements',
+        verbose_name=_('Establishments'),
         orderable=False,
     )
-    is_multi_site = columns.BooleanColumn(verbose_name='Multi-site', orderable=False)
-    criticality = ChoiceFieldColumn(verbose_name='Criticité')
+    is_multi_site = columns.BooleanColumn(verbose_name=_('Multi-site'), orderable=False)
+    criticality = ChoiceFieldColumn(verbose_name=_('Criticality'))
     tags = columns.TagColumn(url_name='plugins:netbox_it_landscape:application_list')
 
     class Meta(NetBoxTable.Meta):
@@ -61,11 +62,11 @@ class ApplicationTable(NetBoxTable):
 
 
 class ApplicationFlowTable(NetBoxTable):
-    flow_id = tables.Column(linkify=True, verbose_name='Identifiant')
-    source = tables.Column(linkify=True, verbose_name='Source')
-    target = tables.Column(linkify=True, verbose_name='Cible')
-    interface_type = ChoiceFieldColumn(verbose_name="Type d'interface")
-    site = tables.Column(linkify=True, verbose_name='Établissement')
+    flow_id = tables.Column(linkify=True, verbose_name=_('Identifier'))
+    source = tables.Column(linkify=True, verbose_name=_('Source'))
+    target = tables.Column(linkify=True, verbose_name=_('Target'))
+    interface_type = ChoiceFieldColumn(verbose_name=_('Interface type'))
+    site = tables.Column(linkify=True, verbose_name=_('Establishment'))
     tags = columns.TagColumn(url_name='plugins:netbox_it_landscape:applicationflow_list')
 
     class Meta(NetBoxTable.Meta):

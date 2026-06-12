@@ -1,3 +1,4 @@
+from django.utils.translation import gettext_lazy as _
 from utilities.choices import ChoiceSet
 
 
@@ -8,8 +9,8 @@ class CriticalityChoices(ChoiceSet):
     STANDARD = 'standard'
 
     CHOICES = [
-        (CRITICAL, 'Critique', 'red'),
-        (STANDARD, 'Standard', 'gray'),
+        (CRITICAL, _('Critical'), 'red'),
+        (STANDARD, _('Standard'), 'gray'),
     ]
 
 
@@ -23,16 +24,16 @@ class InterfaceTypeChoices(ChoiceSet):
     AUTRE = 'autre'
 
     CHOICES = [
-        (ADMINISTRATIVE, 'Administrative', 'yellow'),
-        (MEDICALE, 'Médicale', 'green'),
-        (FACTURATION, 'Facturation', 'red'),
-        (PLANIFICATION, 'Planification', 'blue'),
-        (AUTRE, 'Autre', 'gray'),
+        (ADMINISTRATIVE, _('Administrative'), 'yellow'),
+        (MEDICALE, _('Medical'), 'green'),
+        (FACTURATION, _('Billing'), 'red'),
+        (PLANIFICATION, _('Scheduling'), 'blue'),
+        (AUTRE, _('Other'), 'gray'),
     ]
 
 
-# Couleurs hexadécimales des types d'interface, reprises de l'application
-# it-landscape d'origine (lib/constants.js) pour les vues cartographiques.
+# Hex colors for interface types, inherited from the original it-landscape
+# application (lib/constants.js), used in the landscape views.
 INTERFACE_HEX_COLORS = {
     InterfaceTypeChoices.MEDICALE: '#4caf50',
     InterfaceTypeChoices.ADMINISTRATIVE: '#d4b106',
@@ -41,13 +42,13 @@ INTERFACE_HEX_COLORS = {
     InterfaceTypeChoices.AUTRE: '#9e9e9e',
 }
 
-# Palette des tuiles de domaines (DOMAIN_COLORS de l'app d'origine),
-# stockée sans le '#' (format ColorField NetBox).
+# Domain tile palette (DOMAIN_COLORS from the original app),
+# stored without '#' (NetBox ColorField format).
 DOMAIN_COLOR_PALETTE = [
-    'e5f4fd',  # bleu très pâle
-    'fbf4e9',  # orangé
-    'eaf7eb',  # vert
-    'f9ebf2',  # rose
-    'ede8fd',  # violet
+    'e5f4fd',  # pale blue
+    'fbf4e9',  # orange
+    'eaf7eb',  # green
+    'f9ebf2',  # pink
+    'ede8fd',  # purple
     'fdf3e5',  # beige
 ]

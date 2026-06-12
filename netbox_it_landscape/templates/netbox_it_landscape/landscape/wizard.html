@@ -1,0 +1,118 @@
+{% extends 'base/layout.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Setup wizard" %}{% endblock %}
+
+{% block content %}
+<style>
+  .itl-wizard { max-width: 980px; }
+  .itl-bundle-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: .8rem; margin-bottom: 1rem; }
+  .itl-bundle-card {
+    position: relative; border: 2px solid var(--tblr-border-color); border-radius: .6rem;
+    background: var(--tblr-bg-surface); padding: .9rem 1rem; cursor: pointer;
+    transition: border-color .12s ease, box-shadow .12s ease;
+  }
+  .itl-bundle-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.12); }
+  .itl-bundle-card:has(input:checked) { border-color: var(--tblr-primary, #1b75bc); box-shadow: 0 0 0 3px color-mix(in srgb, var(--tblr-primary, #1b75bc) 20%, transparent); }
+  .itl-bundle-card input { position: absolute; opacity: 0; }
+  .itl-bundle-card h3 { margin: 0 0 .3rem; font-size: 1rem; color: var(--tblr-body-color); display: flex; align-items: center; gap: .5rem; }
+  .itl-bundle-card p { font-size: .8rem; color: var(--tblr-secondary, var(--tblr-muted)); margin: 0 0 .6rem; line-height: 1.4; }
+  .itl-bundle-stats { display: flex; flex-wrap: wrap; gap: .35rem; }
+  .itl-step { margin-bottom: 1.2rem; }
+  .itl-step-title { font-weight: 600; font-size: .92rem; color: var(--tblr-body-color); margin-bottom: .5rem; }
+  .itl-step-title .badge { margin-right: .4rem; }
+  .itl-result-stats { display: flex; flex-wrap: wrap; gap: .4rem; margin: .6rem 0; }
+</style>
+
+<div class="itl-wizard">
+  <h1 class="mb-0">{% trans "Setup wizard" %}</h1>
+  <div class="text-muted mb-3">{% trans "Bootstrap your cartography with a ready-to-use sector modeling bundle and sample data." %}</div>
+
+  {% if forbidden %}
+    <div class="alert alert-danger">{% trans "You do not have permission to use the setup wizard." %}</div>
+  {% else %}
+
+    {% if result %}
+      <div class="alert alert-success">
+        <h4 class="alert-title">{% trans "Bundle applied successfully" %}</h4>
+        <div>
+          {% blocktrans with site=result.site.name bundle=result.bundle_label %}Bundle “{{ bundle }}” applied to <strong>{{ site }}</strong>{% endblocktrans %}
+          {% if result.site_created %}({% trans "site created" %}){% endif %}
+        </div>
+        <div class="itl-result-stats">
+          <span class="badge text-bg-blue">{{ result.stats.domains }} {% trans "domains" %}</span>
+          <span class="badge text-bg-blue">{{ result.stats.processes }} {% trans "processes" %}</span>
+          <span class="badge text-bg-blue">{{ result.stats.applications }} {% trans "applications" %}</span>
+          <span class="badge text-bg-blue">{{ result.stats.flows }} {% trans "flows" %}</span>
+          <span class="badge text-bg-secondary">{{ result.stats.vms }} {% trans "VMs" %}</span>
+          <span class="badge text-bg-secondary">{{ result.stats.vlans }} {% trans "VLANs" %}</span>
+          <span class="badge text-bg-secondary">{{ result.stats.prefixes }} {% trans "prefixes" %}</span>
+        </div>
+        <div class="d-flex gap-2 mt-2">
+          <a class="btn btn-sm btn-primary" href="{% url 'plugins:netbox_it_landscape:business_landscape' %}?site_id={{ result.site.pk }}">{% trans "Business view" %}</a>
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'plugins:netbox_it_landscape:flux_landscape' %}?site_id={{ result.site.pk }}">{% trans "Flow view" %}</a>
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'plugins:netbox_it_landscape:kpi_landscape' %}?site_id={{ result.site.pk }}">{% trans "KPI summary" %}</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{{ result.site.get_absolute_url }}">{% trans "Site page" %}</a>
+        </div>
+      </div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="itl-step">
+        <div class="itl-step-title"><span class="badge text-bg-primary">1</span>{% trans "Choose a modeling bundle" %}</div>
+        <div class="itl-bundle-grid">
+          {% for bundle in bundles %}
+            <label class="itl-bundle-card">
+              <input type="radio" name="bundle" value="{{ bundle.key }}" {% if forloop.first %}checked{% endif %}>
+              <h3><i class="mdi {{ bundle.icon }}"></i>{{ bundle.label }}</h3>
+              <p>{{ bundle.description }}</p>
+              <div class="itl-bundle-stats">
+                <span class="badge text-bg-secondary">{{ bundle.domain_count }} {% trans "domains" %}</span>
+                <span class="badge text-bg-secondary">{{ bundle.process_count }} {% trans "processes" %}</span>
+                <span class="badge text-bg-blue">{{ bundle.app_count }} {% trans "applications" %}</span>
+                <span class="badge text-bg-blue">{{ bundle.flow_count }} {% trans "flows" %}</span>
+                <span class="badge text-bg-secondary">{{ bundle.vm_count }} {% trans "VMs" %}</span>
+                <span class="badge text-bg-secondary">{{ bundle.vlan_count }} {% trans "VLANs" %}</span>
+              </div>
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="itl-step">
+        <div class="itl-step-title"><span class="badge text-bg-primary">2</span>{% trans "Target facility" %}</div>
+        <div class="row">
+          <div class="col-md-6">
+            <input type="text" name="site_name" class="form-control" required maxlength="100"
+                   placeholder="{% trans 'e.g. CH Sainte-Marie, Usine de Lyon…' %}"
+                   value="{{ form.site_name.value|default:'' }}">
+            <small class="text-muted">{{ form.site_name.help_text }}</small>
+            {% if form.site_name.errors %}<div class="text-danger">{{ form.site_name.errors.0 }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="itl-step">
+        <div class="itl-step-title"><span class="badge text-bg-primary">3</span>{% trans "Sample data" %}</div>
+        <label class="form-check">
+          <input type="checkbox" name="with_apps" class="form-check-input" checked>
+          <span class="form-check-label">{% trans "Load sample applications" %}</span>
+        </label>
+        <label class="form-check">
+          <input type="checkbox" name="with_infra" class="form-check-input" checked>
+          <span class="form-check-label">{% trans "Load sample infrastructure (VLANs, networks, virtual machines)" %}</span>
+        </label>
+        <label class="form-check">
+          <input type="checkbox" name="with_flows" class="form-check-input" checked>
+          <span class="form-check-label">{% trans "Load sample application flows" %}</span>
+        </label>
+        <small class="text-muted">{% trans "Without sample data, only the domain / process structure is created." %}</small>
+      </div>
+
+      <button type="submit" class="btn btn-primary">{% trans "Apply bundle" %}</button>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}

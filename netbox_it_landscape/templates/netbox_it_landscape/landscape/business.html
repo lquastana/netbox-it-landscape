@@ -1,6 +1,7 @@
-{% extends 'base/layout.html' %}
+﻿{% extends 'base/layout.html' %}
+{% load i18n %}
 
-{% block title %}Vue métier{% endblock %}
+{% block title %}{% trans "Business view" %}{% endblock %}
 
 {% block content %}
 <style>
@@ -12,7 +13,6 @@
   .itl-etab-header h2 a:hover { color: var(--tblr-primary); }
   .itl-etab-stats { display: flex; gap: .4rem; }
 
-  /* Domaine : teinte dérivée de la couleur du domaine, lisible clair & sombre */
   .itl-domain {
     border-radius: .6rem;
     padding: .8rem 1rem;
@@ -35,7 +35,6 @@
   .itl-domain-title strong a:hover { color: var(--tblr-primary); }
   .itl-domain-title em { display: block; font-style: normal; color: var(--tblr-secondary, var(--tblr-muted)); font-size: .8rem; margin-top: .1rem; }
 
-  /* Processus */
   .itl-process {
     background: var(--tblr-bg-surface);
     border: 1px solid var(--tblr-border-color);
@@ -58,7 +57,6 @@
   .itl-process-title strong a:hover { color: var(--tblr-primary); }
   .itl-process-title .itl-desc { color: var(--tblr-secondary, var(--tblr-muted)); font-size: .82rem; margin-left: .5rem; }
 
-  /* Cartes applications (mode détaillé) */
   .itl-app-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: .65rem; margin-top: .65rem; }
   .itl-app-card {
     border: 1px solid var(--tblr-border-color);
@@ -70,7 +68,7 @@
   }
   .itl-app-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.12); transform: translateY(-1px); }
   .itl-app-card.is-critical { border-left-color: #dc2626; }
-  .itl-app-topline { display: flex; justify-content: space-between; align-items: center; margin-bottom: .3rem; }
+  .itl-app-topline { display: flex; gap: .3rem; align-items: center; margin-bottom: .3rem; }
   .itl-app-card h5 { margin: 0 0 .25rem; font-size: .92rem; }
   .itl-app-card h5 a { color: var(--tblr-body-color); text-decoration: none; }
   .itl-app-card h5 a:hover { color: var(--tblr-primary); }
@@ -83,7 +81,7 @@
   }
   .itl-empty-chip { font-size: .7rem; color: var(--tblr-secondary, var(--tblr-muted)); }
 
-  /* ── Mode paysage (condensé) ─────────────────────────────────────────── */
+  /* Condensed landscape mode */
   .itl-landscape-domains { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: .7rem; align-items: start; }
   .itl-l-domain {
     border-radius: .55rem;
@@ -128,7 +126,6 @@
   .itl-iface-dots { display: flex; gap: .15rem; flex-shrink: 0; }
   .itl-iface-dot { width: .45rem; height: .45rem; border-radius: 50%; }
 
-  /* Impression : pleine page, fonds conservés */
   @media print {
     .itl-toolbar form, .itl-view-toggle, #navbar, .navbar, footer { display: none !important; }
     .itl-etab { break-inside: avoid-page; box-shadow: none; }
@@ -139,70 +136,70 @@
 
 <div class="itl-toolbar">
   <div class="me-auto">
-    <h1 class="mb-0">Vue métier</h1>
-    <div class="text-muted">{% if view_mode == 'paysage' %}Vue paysage condensée{% else %}Établissements, domaines, processus et applications{% endif %}</div>
+    <h1 class="mb-0">{% trans "Business view" %}</h1>
+    <div class="text-muted">{% if view_mode == 'paysage' %}{% trans "Condensed landscape view" %}{% else %}{% trans "Facilities, domains, processes and applications" %}{% endif %}</div>
   </div>
 
-  <div class="btn-group itl-view-toggle" role="group" aria-label="Mode d'affichage">
+  <div class="btn-group itl-view-toggle" role="group" aria-label="{% trans 'Display mode' %}">
     <a href="?view=detail{% if filter_site_id %}&site_id={{ filter_site_id }}{% endif %}{% if filter_criticality %}&criticality={{ filter_criticality }}{% endif %}{% if filter_q %}&q={{ filter_q|urlencode }}{% endif %}"
-       class="btn btn-sm {% if view_mode == 'detail' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Détaillée</a>
+       class="btn btn-sm {% if view_mode == 'detail' %}btn-primary{% else %}btn-outline-secondary{% endif %}">{% trans "Detailed" %}</a>
     <a href="?view=paysage{% if filter_site_id %}&site_id={{ filter_site_id }}{% endif %}{% if filter_criticality %}&criticality={{ filter_criticality }}{% endif %}{% if filter_q %}&q={{ filter_q|urlencode }}{% endif %}"
-       class="btn btn-sm {% if view_mode == 'paysage' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Paysage</a>
+       class="btn btn-sm {% if view_mode == 'paysage' %}btn-primary{% else %}btn-outline-secondary{% endif %}">{% trans "Landscape" %}</a>
   </div>
 
   <form method="get" class="d-flex flex-wrap gap-2 align-items-end">
     <input type="hidden" name="view" value="{{ view_mode }}">
     <div>
-      <label class="form-label mb-1">Établissement</label>
+      <label class="form-label mb-1">{% trans "Establishment" %}</label>
       <select name="site_id" class="form-select form-select-sm">
-        <option value="">Tous</option>
+        <option value="">{% trans "All" %}</option>
         {% for site in sites_choices %}
           <option value="{{ site.pk }}" {% if filter_site_id == site.pk|stringformat:'s' %}selected{% endif %}>{{ site.name }}</option>
         {% endfor %}
       </select>
     </div>
     <div>
-      <label class="form-label mb-1">Criticité</label>
+      <label class="form-label mb-1">{% trans "Criticality" %}</label>
       <select name="criticality" class="form-select form-select-sm">
-        <option value="">Toutes</option>
+        <option value="">{% trans "All" %}</option>
         {% for choice in criticality_choices %}
           <option value="{{ choice.0 }}" {% if filter_criticality == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
         {% endfor %}
       </select>
     </div>
     <div>
-      <label class="form-label mb-1">Recherche</label>
-      <input type="text" name="q" value="{{ filter_q }}" class="form-control form-control-sm" placeholder="Nom, éditeur…">
+      <label class="form-label mb-1">{% trans "Search" %}</label>
+      <input type="text" name="q" value="{{ filter_q }}" class="form-control form-control-sm" placeholder="{% trans 'Name, vendor…' %}">
     </div>
-    <button type="submit" class="btn btn-sm btn-primary">Filtrer</button>
+    <button type="submit" class="btn btn-sm btn-primary">{% trans "Filter" %}</button>
     {% if filter_q or filter_site_id or filter_criticality %}
-      <a href="{% url 'plugins:netbox_it_landscape:business_landscape' %}?view={{ view_mode }}" class="btn btn-sm btn-outline-secondary">Réinitialiser</a>
+      <a href="{% url 'plugins:netbox_it_landscape:business_landscape' %}?view={{ view_mode }}" class="btn btn-sm btn-outline-secondary">{% trans "Reset" %}</a>
     {% endif %}
   </form>
 </div>
 
 {% if not sites %}
   <div class="alert alert-info">
-    Aucune application ne correspond à ces critères.
+    {% trans "No application matches these criteria." %}
     {% if not filter_q and not filter_site_id and not filter_criticality %}
-      Importez vos données avec <code>manage.py import_it_landscape</code> ou créez des domaines depuis le menu <strong>IT Landscape</strong>.
+      {% url 'plugins:netbox_it_landscape:setup_wizard' as wizard_url %}
+      {% blocktrans %}Use the <a href="{{ wizard_url }}">setup wizard</a> or import your data with <code>manage.py import_it_landscape</code>.{% endblocktrans %}
     {% endif %}
   </div>
 {% endif %}
 
 {% if view_mode == 'paysage' %}
 
-  {# ── Mode paysage condensé ─────────────────────────────────────────── #}
   {% for entry in sites %}
     <section class="card itl-etab">
       <div class="card-body">
         <div class="itl-etab-header">
           <h2 class="mb-0"><a href="{{ entry.site.get_absolute_url }}">{{ entry.site.name }}</a></h2>
           <div class="itl-etab-stats">
-            <span class="badge text-bg-secondary">{{ entry.domains|length }} domaine{{ entry.domains|length|pluralize }}</span>
-            <span class="badge text-bg-blue">{{ entry.app_count }} application{{ entry.app_count|pluralize }}</span>
+            <span class="badge text-bg-secondary">{{ entry.domains|length }} {% trans "domains" %}</span>
+            <span class="badge text-bg-blue">{{ entry.app_count }} {% trans "applications" %}</span>
             {% if entry.critical_count %}
-              <span class="badge text-bg-red">{{ entry.critical_count }} critique{{ entry.critical_count|pluralize }}</span>
+              <span class="badge text-bg-red">{{ entry.critical_count }} {% trans "critical" %}</span>
             {% endif %}
           </div>
         </div>
@@ -212,7 +209,7 @@
             <div class="itl-l-domain" style="--domain-color: #{{ dom.domain.color }};">
               <div class="itl-l-domain-title">
                 <h3><a href="{{ dom.domain.get_absolute_url }}">{{ dom.domain.name }}</a></h3>
-                <span>{{ dom.app_count }} app{{ dom.app_count|pluralize }}</span>
+                <span>{{ dom.app_count }} {% trans "apps" %}</span>
               </div>
               {% for proc in dom.processes %}
                 <div class="itl-l-process">
@@ -224,7 +221,7 @@
                           <h6><a href="{{ app.obj.get_absolute_url }}">{{ app.obj.name }}</a></h6>
                           <span class="itl-mini-dot" style="background: {% if app.is_critical %}#dc2626{% else %}#64748b{% endif %};" title="{{ app.obj.get_criticality_display }}"></span>
                         </div>
-                        {% if app.obj.is_multi_site %}<span class="badge text-bg-purple mb-1" style="font-size: .55rem;">Multi-site</span>{% endif %}
+                        {% if app.obj.is_multi_site %}<span class="badge text-bg-purple mb-1" style="font-size: .55rem;">{% trans "Multi-site" %}</span>{% endif %}
                         <div class="itl-mini-foot">
                           <span class="itl-mini-host">{{ app.obj.hosting|default:'' }}</span>
                           <span class="itl-iface-dots">
@@ -247,17 +244,16 @@
 
 {% else %}
 
-  {# ── Mode détaillé ─────────────────────────────────────────────────── #}
   {% for entry in sites %}
     <section class="card itl-etab">
       <div class="card-body">
         <div class="itl-etab-header">
           <h2 class="mb-0"><a href="{{ entry.site.get_absolute_url }}">{{ entry.site.name }}</a></h2>
           <div class="itl-etab-stats">
-            <span class="badge text-bg-secondary">{{ entry.domains|length }} domaine{{ entry.domains|length|pluralize }}</span>
-            <span class="badge text-bg-blue">{{ entry.app_count }} application{{ entry.app_count|pluralize }}</span>
+            <span class="badge text-bg-secondary">{{ entry.domains|length }} {% trans "domains" %}</span>
+            <span class="badge text-bg-blue">{{ entry.app_count }} {% trans "applications" %}</span>
             {% if entry.critical_count %}
-              <span class="badge text-bg-red">{{ entry.critical_count }} critique{{ entry.critical_count|pluralize }}</span>
+              <span class="badge text-bg-red">{{ entry.critical_count }} {% trans "critical" %}</span>
             {% endif %}
           </div>
         </div>
@@ -270,9 +266,9 @@
                 {% if dom.domain.description %}<em>{{ dom.domain.description }}</em>{% endif %}
               </span>
               <span class="d-flex gap-2 align-items-center">
-                <span class="badge text-bg-secondary">{{ dom.processes|length }} processus</span>
-                <span class="badge text-bg-blue">{{ dom.app_count }} app{{ dom.app_count|pluralize }}</span>
-                {% if dom.critical_count %}<span class="badge text-bg-red">{{ dom.critical_count }} critique{{ dom.critical_count|pluralize }}</span>{% endif %}
+                <span class="badge text-bg-secondary">{{ dom.processes|length }} {% trans "processes" %}</span>
+                <span class="badge text-bg-blue">{{ dom.app_count }} {% trans "apps" %}</span>
+                {% if dom.critical_count %}<span class="badge text-bg-red">{{ dom.critical_count }} {% trans "critical" %}</span>{% endif %}
               </span>
             </summary>
 
@@ -284,8 +280,8 @@
                     {% if proc.process.description %}<span class="itl-desc">{{ proc.process.description }}</span>{% endif %}
                   </span>
                   <span class="d-flex gap-2 align-items-center">
-                    <span class="badge text-bg-secondary">{{ proc.applications|length }} app{{ proc.applications|length|pluralize }}</span>
-                    {% if proc.critical_count %}<span class="badge text-bg-red">{{ proc.critical_count }} critique{{ proc.critical_count|pluralize }}</span>{% endif %}
+                    <span class="badge text-bg-secondary">{{ proc.applications|length }} {% trans "apps" %}</span>
+                    {% if proc.critical_count %}<span class="badge text-bg-red">{{ proc.critical_count }} {% trans "critical" %}</span>{% endif %}
                   </span>
                 </summary>
                 <div class="itl-app-grid">
@@ -293,18 +289,18 @@
                     <article class="itl-app-card {% if app.is_critical %}is-critical{% endif %}">
                       <div class="itl-app-topline">
                         <span class="badge text-bg-{{ app.obj.get_criticality_color }}">{{ app.obj.get_criticality_display }}</span>
-                        {% if app.obj.is_multi_site %}<span class="badge text-bg-purple">Multi-site</span>{% endif %}
+                        {% if app.obj.is_multi_site %}<span class="badge text-bg-purple">{% trans "Multi-site" %}</span>{% endif %}
                       </div>
                       <h5><a href="{{ app.obj.get_absolute_url }}">{{ app.obj.name }}</a></h5>
-                      <p>{{ app.obj.description|default:'Description non renseignée.' }}</p>
+                      <p>{{ app.obj.description|default:_('No description.') }}</p>
                       <div class="itl-app-meta">
-                        <span>{{ app.obj.hosting|default:'Hébergement non renseigné' }}</span>
+                        <span>{{ app.obj.hosting|default:_('Hosting not specified') }}</span>
                       </div>
                       <div class="itl-chips">
                         {% for chip in app.chips %}
                           <span class="itl-chip" style="border-color: {{ chip.color }}; background: {{ chip.bg }};">{{ chip.label }}</span>
                         {% empty %}
-                          <span class="itl-empty-chip">Aucune interface active</span>
+                          <span class="itl-empty-chip">{% trans "No active interface" %}</span>
                         {% endfor %}
                       </div>
                     </article>

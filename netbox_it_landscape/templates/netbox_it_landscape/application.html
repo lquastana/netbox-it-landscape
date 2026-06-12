@@ -1,19 +1,20 @@
-{% extends 'generic/object.html' %}
+﻿{% extends 'generic/object.html' %}
 {% load helpers %}
+{% load i18n %}
 {% load render_table from django_tables2 %}
 
 {% block content %}
   <div class="row">
     <div class="col col-12 col-md-6">
       <div class="card">
-        <h2 class="card-header">Application</h2>
+        <h2 class="card-header">{% trans "Application" %}</h2>
         <table class="table table-hover attr-table">
           <tr>
-            <th scope="row">Nom</th>
+            <th scope="row">{% trans "Name" %}</th>
             <td>{{ object.name }}</td>
           </tr>
           <tr>
-            <th scope="row">Processus</th>
+            <th scope="row">{% trans "Processes" %}</th>
             <td>
               {% for process in object.processes.all %}
                 {{ process|linkify }} <span class="text-muted">({{ process.domain.site }})</span>{% if not forloop.last %}<br>{% endif %}
@@ -23,7 +24,7 @@
             </td>
           </tr>
           <tr>
-            <th scope="row">Établissements</th>
+            <th scope="row">{% trans "Establishments" %}</th>
             <td>
               {% for site in object.site_list %}
                 {{ site|linkify }}{% if not forloop.last %}, {% endif %}
@@ -33,31 +34,31 @@
             </td>
           </tr>
           <tr>
-            <th scope="row">Description</th>
+            <th scope="row">{% trans "Description" %}</th>
             <td>{{ object.description|placeholder }}</td>
           </tr>
           <tr>
-            <th scope="row">Criticité</th>
+            <th scope="row">{% trans "Criticality" %}</th>
             <td><span class="badge text-bg-{{ object.get_criticality_color }}">{{ object.get_criticality_display }}</span></td>
           </tr>
           <tr>
-            <th scope="row">Éditeur</th>
+            <th scope="row">{% trans "Vendor" %}</th>
             <td>{{ object.editor|placeholder }}</td>
           </tr>
           <tr>
-            <th scope="row">Référent</th>
+            <th scope="row">{% trans "Contact person" %}</th>
             <td>{{ object.referent|placeholder }}</td>
           </tr>
           <tr>
-            <th scope="row">Hébergement</th>
+            <th scope="row">{% trans "Hosting" %}</th>
             <td>{{ object.hosting|placeholder }}</td>
           </tr>
           <tr>
-            <th scope="row">Multi-établissement</th>
+            <th scope="row">{% trans "Multi-site" %}</th>
             <td>{% checkmark object.is_multi_site %}</td>
           </tr>
           <tr>
-            <th scope="row">Supervision</th>
+            <th scope="row">{% trans "Monitoring" %}</th>
             <td>
               {% if object.monitoring_url %}
                 <a href="{{ object.monitoring_url }}" target="_blank" rel="noopener">{{ object.monitoring_url }}</a>
@@ -69,7 +70,7 @@
         </table>
       </div>
       <div class="card">
-        <h2 class="card-header">Interfaces actives</h2>
+        <h2 class="card-header">{% trans "Active interfaces" %}</h2>
         <div class="card-body">
           {% with interfaces=object.active_interfaces %}
             {% if interfaces %}
@@ -77,7 +78,7 @@
                 <span class="badge text-bg-blue me-1">{{ label }}</span>
               {% endfor %}
             {% else %}
-              <span class="text-muted">Aucune interface active</span>
+              <span class="text-muted">{% trans "No active interface" %}</span>
             {% endif %}
           {% endwith %}
         </div>
@@ -87,12 +88,12 @@
       {% include 'inc/panels/custom_fields.html' %}
       {% include 'inc/panels/tags.html' %}
       <div class="card">
-        <h2 class="card-header">Machines virtuelles</h2>
+        <h2 class="card-header">{% trans "Virtual machines" %}</h2>
         {% with vms=object.virtual_machines.all %}
           {% if vms %}
             <table class="table table-hover">
               <thead>
-                <tr><th>Nom</th><th>IP principale</th><th>Cluster</th></tr>
+                <tr><th>{% trans "Name" %}</th><th>{% trans "Primary IP" %}</th><th>{% trans "Cluster" %}</th></tr>
               </thead>
               <tbody>
                 {% for vm in vms %}
@@ -105,17 +106,17 @@
               </tbody>
             </table>
           {% else %}
-            <div class="card-body text-muted">Aucune machine virtuelle associée</div>
+            <div class="card-body text-muted">{% trans "No associated virtual machine" %}</div>
           {% endif %}
         {% endwith %}
       </div>
       <div class="card">
-        <h2 class="card-header">Équipements</h2>
+        <h2 class="card-header">{% trans "Devices" %}</h2>
         {% with devices=object.devices.all %}
           {% if devices %}
             <table class="table table-hover">
               <thead>
-                <tr><th>Nom</th><th>IP principale</th><th>Site</th></tr>
+                <tr><th>{% trans "Name" %}</th><th>{% trans "Primary IP" %}</th><th>{% trans "Site" %}</th></tr>
               </thead>
               <tbody>
                 {% for device in devices %}
@@ -128,7 +129,7 @@
               </tbody>
             </table>
           {% else %}
-            <div class="card-body text-muted">Aucun équipement associé</div>
+            <div class="card-body text-muted">{% trans "No associated device" %}</div>
           {% endif %}
         {% endwith %}
       </div>
@@ -137,11 +138,11 @@
   <div class="row">
     <div class="col col-12">
       <div class="card">
-        <h2 class="card-header">Flux sortants</h2>
+        <h2 class="card-header">{% trans "Outbound flows" %}</h2>
         {% render_table outbound_table %}
       </div>
       <div class="card">
-        <h2 class="card-header">Flux entrants</h2>
+        <h2 class="card-header">{% trans "Inbound flows" %}</h2>
         {% render_table inbound_table %}
       </div>
     </div>

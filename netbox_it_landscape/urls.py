@@ -7,6 +7,8 @@ urlpatterns = (
 
     # Vues cartographiques
     path('synthese/', views.KpiLandscapeView.as_view(), name='kpi_landscape'),
+    path('comparaison/', views.ComparisonLandscapeView.as_view(), name='comparison_landscape'),
+    path('initialisation/', views.SetupWizardView.as_view(), name='setup_wizard'),
     path('metier/', views.BusinessLandscapeView.as_view(), name='business_landscape'),
     path('applicatif/', views.ApplicativeLandscapeView.as_view(), name='applicative_landscape'),
     path('cartographie-flux/', views.FluxLandscapeView.as_view(), name='flux_landscape'),

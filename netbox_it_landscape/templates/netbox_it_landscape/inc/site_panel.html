@@ -1,24 +1,25 @@
 {% load helpers %}
+{% load i18n %}
 <div class="card">
   <h2 class="card-header">IT Landscape</h2>
   <table class="table table-hover attr-table">
     <tr>
-      <th scope="row">Domaines métier</th>
+      <th scope="row">{% trans "Business domains" %}</th>
       <td><a href="{% url 'plugins:netbox_it_landscape:businessdomain_list' %}?site_id={{ site.pk }}">{{ domain_count }}</a></td>
     </tr>
     <tr>
-      <th scope="row">Applications</th>
+      <th scope="row">{% trans "Applications" %}</th>
       <td><a href="{% url 'plugins:netbox_it_landscape:application_list' %}?site_id={{ site.pk }}">{{ application_count }}</a></td>
     </tr>
     <tr>
-      <th scope="row">Flux applicatifs</th>
+      <th scope="row">{% trans "Application flows" %}</th>
       <td><a href="{% url 'plugins:netbox_it_landscape:applicationflow_list' %}?site_id={{ site.pk }}">{{ flow_count }}</a></td>
     </tr>
   </table>
   <div class="card-footer d-flex gap-2 flex-wrap">
-    <a class="btn btn-sm btn-outline-primary" href="{% url 'plugins:netbox_it_landscape:kpi_landscape' %}?site_id={{ site.pk }}">Synthèse</a>
-    <a class="btn btn-sm btn-outline-primary" href="{% url 'plugins:netbox_it_landscape:business_landscape' %}?site_id={{ site.pk }}">Vue métier</a>
-    <a class="btn btn-sm btn-outline-primary" href="{% url 'plugins:netbox_it_landscape:applicative_landscape' %}?site_id={{ site.pk }}">Vue applicative</a>
-    <a class="btn btn-sm btn-outline-primary" href="{% url 'plugins:netbox_it_landscape:flux_landscape' %}?site_id={{ site.pk }}">Vue flux</a>
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'plugins:netbox_it_landscape:kpi_landscape' %}?site_id={{ site.pk }}">{% trans "Summary" %}</a>
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'plugins:netbox_it_landscape:business_landscape' %}?site_id={{ site.pk }}">{% trans "Business view" %}</a>
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'plugins:netbox_it_landscape:applicative_landscape' %}?site_id={{ site.pk }}">{% trans "Application view" %}</a>
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'plugins:netbox_it_landscape:flux_landscape' %}?site_id={{ site.pk }}">{% trans "Flow view" %}</a>
   </div>
 </div>

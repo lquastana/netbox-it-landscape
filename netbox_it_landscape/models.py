@@ -1,5 +1,6 @@
-from django.db import models
+﻿from django.db import models
 from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
 from netbox.models import NetBoxModel
 from utilities.fields import ColorField
 
@@ -8,18 +9,18 @@ from .choices import CriticalityChoices, InterfaceTypeChoices
 
 class BusinessDomain(NetBoxModel):
     """
-    Domaine métier d'un établissement (ex. « DP Administrative », « Plateau technique »).
-    L'établissement est porté par le Site NetBox.
+    Business domain of a facility (e.g. "Patient administration",
+    "Production"). The facility is a NetBox Site.
     """
     site = models.ForeignKey(
         to='dcim.Site',
         on_delete=models.CASCADE,
         related_name='business_domains',
-        verbose_name='Établissement',
+        verbose_name=_('Establishment'),
     )
-    name = models.CharField('Nom', max_length=100)
-    description = models.CharField('Description', max_length=200, blank=True)
-    color = ColorField('Couleur', default='e5f4fd')
+    name = models.CharField(_('Name'), max_length=100)
+    description = models.CharField(_('Description'), max_length=200, blank=True)
+    color = ColorField(_('Color'), default='e5f4fd')
 
     class Meta:
         ordering = ('site', 'name')
@@ -29,8 +30,8 @@ class BusinessDomain(NetBoxModel):
                 name='%(app_label)s_%(class)s_unique_site_name',
             ),
         )
-        verbose_name = 'domaine métier'
-        verbose_name_plural = 'domaines métier'
+        verbose_name = _('business domain')
+        verbose_name_plural = _('business domains')
 
     def __str__(self):
         return self.name
@@ -41,16 +42,16 @@ class BusinessDomain(NetBoxModel):
 
 class BusinessProcess(NetBoxModel):
     """
-    Processus métier rattaché à un domaine (ex. « GAP », « DPI », « Urgences »).
+    Business process attached to a domain (e.g. "Admissions", "EHR").
     """
     domain = models.ForeignKey(
         to=BusinessDomain,
         on_delete=models.CASCADE,
         related_name='processes',
-        verbose_name='Domaine',
+        verbose_name=_('Domain'),
     )
-    name = models.CharField('Nom', max_length=100)
-    description = models.CharField('Description', max_length=200, blank=True)
+    name = models.CharField(_('Name'), max_length=100)
+    description = models.CharField(_('Description'), max_length=200, blank=True)
 
     class Meta:
         ordering = ('domain', 'name')
@@ -60,8 +61,8 @@ class BusinessProcess(NetBoxModel):
                 name='%(app_label)s_%(class)s_unique_domain_name',
             ),
         )
-        verbose_name = 'processus métier'
-        verbose_name_plural = 'processus métier'
+        verbose_name = _('business process')
+        verbose_name_plural = _('business processes')
 
     def __str__(self):
         return self.name
@@ -76,62 +77,62 @@ class BusinessProcess(NetBoxModel):
 
 class Application(NetBoxModel):
     """
-    Application du SI. Une application est unique dans le référentiel et
-    peut être rattachée à plusieurs processus métier — donc à plusieurs
-    établissements : la notion de multi-site est dérivée de ces
-    rattachements. Les serveurs (VM / devices) y sont reliés directement.
+    IS application. An application is unique in the referential and may be
+    attached to several business processes — hence several facilities: the
+    multi-site notion is derived from those attachments. Servers (VMs /
+    devices) are linked directly.
     """
     processes = models.ManyToManyField(
         to=BusinessProcess,
         related_name='applications',
         blank=True,
-        verbose_name='Processus',
+        verbose_name=_('Processes'),
     )
-    name = models.CharField('Nom', max_length=200, unique=True)
-    description = models.CharField('Description', max_length=500, blank=True)
-    editor = models.CharField('Éditeur', max_length=100, blank=True)
-    referent = models.CharField('Référent', max_length=100, blank=True)
+    name = models.CharField(_('Name'), max_length=200, unique=True)
+    description = models.CharField(_('Description'), max_length=500, blank=True)
+    editor = models.CharField(_('Vendor'), max_length=100, blank=True)
+    referent = models.CharField(_('Contact person'), max_length=100, blank=True)
     hosting = models.CharField(
-        'Hébergement', max_length=100, blank=True,
-        help_text='Lieu d’hébergement (établissement, SaaS, …)',
+        _('Hosting'), max_length=100, blank=True,
+        help_text=_('Hosting location (facility, SaaS, …)'),
     )
     criticality = models.CharField(
-        'Criticité', max_length=30,
+        _('Criticality'), max_length=30,
         choices=CriticalityChoices,
         default=CriticalityChoices.STANDARD,
     )
     monitoring_url = models.URLField(
-        'URL de supervision', blank=True,
-        help_text='Lien vers la supervision (PRTG, Centreon, …)',
+        _('Monitoring URL'), blank=True,
+        help_text=_('Link to the monitoring tool (PRTG, Centreon, …)'),
     )
 
-    # Interfaces actives (drapeaux repris du modèle it-landscape)
-    interface_administrative = models.BooleanField('Interface administrative', default=False)
-    interface_medicale = models.BooleanField('Interface médicale', default=False)
-    interface_facturation = models.BooleanField('Interface facturation', default=False)
-    interface_planification = models.BooleanField('Interface planification', default=False)
-    interface_autre = models.BooleanField('Interface autre', default=False)
+    # Active interfaces (flags inherited from the it-landscape model)
+    interface_administrative = models.BooleanField(_('Administrative interface'), default=False)
+    interface_medicale = models.BooleanField(_('Medical interface'), default=False)
+    interface_facturation = models.BooleanField(_('Billing interface'), default=False)
+    interface_planification = models.BooleanField(_('Scheduling interface'), default=False)
+    interface_autre = models.BooleanField(_('Other interface'), default=False)
 
-    # Rattachement direct à l'infrastructure NetBox
+    # Direct attachment to the NetBox infrastructure
     virtual_machines = models.ManyToManyField(
         to='virtualization.VirtualMachine',
         related_name='it_landscape_applications',
         blank=True,
-        verbose_name='Machines virtuelles',
+        verbose_name=_('Virtual machines'),
     )
     devices = models.ManyToManyField(
         to='dcim.Device',
         related_name='it_landscape_applications',
         blank=True,
-        verbose_name='Équipements',
+        verbose_name=_('Devices'),
     )
 
     clone_fields = ('editor', 'hosting', 'criticality')
 
     class Meta:
         ordering = ('name',)
-        verbose_name = 'application'
-        verbose_name_plural = 'applications'
+        verbose_name = _('application')
+        verbose_name_plural = _('applications')
 
     def __str__(self):
         return self.name
@@ -144,7 +145,7 @@ class Application(NetBoxModel):
 
     @property
     def site_list(self):
-        """Établissements distincts où l'application est déployée (via ses processus)."""
+        """Distinct facilities where the application is deployed (via its processes)."""
         sites = []
         for process in self.processes.all():
             site = process.domain.site
@@ -154,33 +155,33 @@ class Application(NetBoxModel):
 
     @property
     def is_multi_site(self):
-        """Multi-établissement : dérivé des rattachements aux processus."""
+        """Multi-site: derived from the process attachments."""
         return len(self.site_list) > 1
 
     @property
     def active_interfaces(self):
         labels = []
         if self.interface_administrative:
-            labels.append('Administrative')
+            labels.append(_('Administrative'))
         if self.interface_medicale:
-            labels.append('Médicale')
+            labels.append(_('Medical'))
         if self.interface_facturation:
-            labels.append('Facturation')
+            labels.append(_('Billing'))
         if self.interface_planification:
-            labels.append('Planification')
+            labels.append(_('Scheduling'))
         if self.interface_autre:
-            labels.append('Autre')
+            labels.append(_('Other'))
         return labels
 
 
 class ApplicationFlow(NetBoxModel):
     """
-    Flux applicatif entre deux applications : protocole, port, type de
-    message, type d'interface et EAI de transport.
+    Application flow between two applications: protocol, port, message
+    type, interface type and transport EAI.
     """
     flow_id = models.CharField(
-        'Identifiant', max_length=50, blank=True,
-        help_text='Identifiant fonctionnel du flux (ex. VDL-FLX-001)',
+        _('Identifier'), max_length=50, blank=True,
+        help_text=_('Functional flow identifier (e.g. VDL-FLX-001)'),
     )
     site = models.ForeignKey(
         to='dcim.Site',
@@ -188,41 +189,41 @@ class ApplicationFlow(NetBoxModel):
         related_name='application_flows',
         null=True,
         blank=True,
-        verbose_name='Établissement',
-        help_text="Établissement dans lequel ce flux est en place",
+        verbose_name=_('Establishment'),
+        help_text=_('Facility where this flow is in place'),
     )
     source = models.ForeignKey(
         to=Application,
         on_delete=models.CASCADE,
         related_name='flows_as_source',
-        verbose_name='Application source',
+        verbose_name=_('Source application'),
     )
     target = models.ForeignKey(
         to=Application,
         on_delete=models.CASCADE,
         related_name='flows_as_target',
-        verbose_name='Application cible',
+        verbose_name=_('Target application'),
     )
-    protocol = models.CharField('Protocole', max_length=50, blank=True)
-    port = models.PositiveIntegerField('Port', null=True, blank=True)
-    message_type = models.CharField('Type de message', max_length=50, blank=True)
+    protocol = models.CharField(_('Protocol'), max_length=50, blank=True)
+    port = models.PositiveIntegerField(_('Port'), null=True, blank=True)
+    message_type = models.CharField(_('Message type'), max_length=50, blank=True)
     interface_type = models.CharField(
-        "Type d'interface", max_length=30,
+        _('Interface type'), max_length=30,
         choices=InterfaceTypeChoices,
         default=InterfaceTypeChoices.AUTRE,
     )
     eai = models.CharField(
-        'EAI', max_length=100, blank=True,
-        help_text='Moteur d’intégration assurant le transport (ou « Direct »)',
+        _('EAI'), max_length=100, blank=True,
+        help_text=_('Integration engine carrying the flow (or "Direct")'),
     )
-    description = models.CharField('Description', max_length=200, blank=True)
+    description = models.CharField(_('Description'), max_length=200, blank=True)
 
     clone_fields = ('site', 'source', 'target', 'protocol', 'interface_type', 'eai')
 
     class Meta:
         ordering = ('flow_id', 'source', 'target')
-        verbose_name = 'flux applicatif'
-        verbose_name_plural = 'flux applicatifs'
+        verbose_name = _('application flow')
+        verbose_name_plural = _('application flows')
 
     def __str__(self):
         label = f'{self.source.name} → {self.target.name}'

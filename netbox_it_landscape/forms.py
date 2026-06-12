@@ -1,4 +1,5 @@
-from django import forms
+﻿from django import forms
+from django.utils.translation import gettext_lazy as _
 from dcim.models import Device, Site
 from netbox.forms import NetBoxModelFilterSetForm, NetBoxModelForm
 from utilities.forms.fields import (
@@ -13,13 +14,13 @@ from .models import Application, ApplicationFlow, BusinessDomain, BusinessProces
 
 
 #
-# Domaines métier
+# Business domains
 #
 
 class BusinessDomainForm(NetBoxModelForm):
     site = DynamicModelChoiceField(
         queryset=Site.objects.all(),
-        label='Établissement',
+        label=_('Establishment'),
     )
 
     class Meta:
@@ -32,19 +33,19 @@ class BusinessDomainFilterForm(NetBoxModelFilterSetForm):
     site_id = DynamicModelMultipleChoiceField(
         queryset=Site.objects.all(),
         required=False,
-        label='Établissement',
+        label=_('Establishment'),
     )
     tag = TagFilterField(model)
 
 
 #
-# Processus métier
+# Business processes
 #
 
 class BusinessProcessForm(NetBoxModelForm):
     domain = DynamicModelChoiceField(
         queryset=BusinessDomain.objects.all(),
-        label='Domaine',
+        label=_('Domain'),
     )
 
     class Meta:
@@ -57,12 +58,12 @@ class BusinessProcessFilterForm(NetBoxModelFilterSetForm):
     site_id = DynamicModelMultipleChoiceField(
         queryset=Site.objects.all(),
         required=False,
-        label='Établissement',
+        label=_('Establishment'),
     )
     domain_id = DynamicModelMultipleChoiceField(
         queryset=BusinessDomain.objects.all(),
         required=False,
-        label='Domaine',
+        label=_('Domain'),
     )
     tag = TagFilterField(model)
 
@@ -75,18 +76,21 @@ class ApplicationForm(NetBoxModelForm):
     processes = DynamicModelMultipleChoiceField(
         queryset=BusinessProcess.objects.all(),
         required=False,
-        label='Processus',
-        help_text='Rattachements métier — plusieurs processus possibles, y compris dans des établissements différents (multi-site)',
+        label=_('Processes'),
+        help_text=_(
+            'Business attachments — several processes allowed, including in '
+            'different facilities (multi-site)'
+        ),
     )
     virtual_machines = DynamicModelMultipleChoiceField(
         queryset=VirtualMachine.objects.all(),
         required=False,
-        label='Machines virtuelles',
+        label=_('Virtual machines'),
     )
     devices = DynamicModelMultipleChoiceField(
         queryset=Device.objects.all(),
         required=False,
-        label='Équipements',
+        label=_('Devices'),
     )
 
     class Meta:
@@ -107,43 +111,75 @@ class ApplicationFilterForm(NetBoxModelFilterSetForm):
     site_id = DynamicModelMultipleChoiceField(
         queryset=Site.objects.all(),
         required=False,
-        label='Établissement',
+        label=_('Establishment'),
     )
     domain_id = DynamicModelMultipleChoiceField(
         queryset=BusinessDomain.objects.all(),
         required=False,
-        label='Domaine',
+        label=_('Domain'),
     )
     process_id = DynamicModelMultipleChoiceField(
         queryset=BusinessProcess.objects.all(),
         required=False,
-        label='Processus',
+        label=_('Process'),
     )
     criticality = forms.MultipleChoiceField(
         choices=CriticalityChoices,
         required=False,
-        label='Criticité',
+        label=_('Criticality'),
     )
     tag = TagFilterField(model)
 
 
 #
-# Flux applicatifs
+# Setup wizard
+#
+
+class SetupWizardForm(forms.Form):
+    bundle = forms.ChoiceField(label=_('Modeling bundle'))
+    site_name = forms.CharField(
+        label=_('Facility / site name'),
+        max_length=100,
+        help_text=_('An existing site with this name will be reused, otherwise it is created'),
+    )
+    with_apps = forms.BooleanField(
+        required=False, initial=True,
+        label=_('Load sample applications'),
+    )
+    with_infra = forms.BooleanField(
+        required=False, initial=True,
+        label=_('Load sample infrastructure (VLANs, networks, virtual machines)'),
+    )
+    with_flows = forms.BooleanField(
+        required=False, initial=True,
+        label=_('Load sample application flows'),
+    )
+
+    def __init__(self, *args, **kwargs):
+        from .bundles import BUNDLES
+        super().__init__(*args, **kwargs)
+        self.fields['bundle'].choices = [
+            (key, bundle['label']) for key, bundle in BUNDLES.items()
+        ]
+
+
+#
+# Application flows
 #
 
 class ApplicationFlowForm(NetBoxModelForm):
     site = DynamicModelChoiceField(
         queryset=Site.objects.all(),
         required=False,
-        label='Établissement',
+        label=_('Establishment'),
     )
     source = DynamicModelChoiceField(
         queryset=Application.objects.all(),
-        label='Application source',
+        label=_('Source application'),
     )
     target = DynamicModelChoiceField(
         queryset=Application.objects.all(),
-        label='Application cible',
+        label=_('Target application'),
     )
 
     class Meta:
@@ -159,23 +195,23 @@ class ApplicationFlowFilterForm(NetBoxModelFilterSetForm):
     site_id = DynamicModelMultipleChoiceField(
         queryset=Site.objects.all(),
         required=False,
-        label='Établissement',
+        label=_('Establishment'),
     )
     source_id = DynamicModelMultipleChoiceField(
         queryset=Application.objects.all(),
         required=False,
-        label='Application source',
+        label=_('Source application'),
     )
     target_id = DynamicModelMultipleChoiceField(
         queryset=Application.objects.all(),
         required=False,
-        label='Application cible',
+        label=_('Target application'),
     )
     interface_type = forms.MultipleChoiceField(
         choices=InterfaceTypeChoices,
         required=False,
-        label="Type d'interface",
+        label=_('Interface type'),
     )
-    protocol = forms.CharField(required=False, label='Protocole')
-    eai = forms.CharField(required=False, label='EAI')
+    protocol = forms.CharField(required=False, label=_('Protocol'))
+    eai = forms.CharField(required=False, label=_('EAI'))
     tag = TagFilterField(model)
