@@ -1,114 +1,118 @@
 # netbox-it-landscape
 
-Plugin NetBox de **cartographie applicative hospitalière**, intégration native des
-fonctionnalités du projet [it-landscape](https://github.com/lquastana/it-landscape) :
-vues **métier**, **applicative** et **flux**.
+🇫🇷 [Version française](README.fr.md)
 
-## Pourquoi un plugin ?
+NetBox plugin for **application landscape cartography**, a native integration
+of the [it-landscape](https://github.com/lquastana/it-landscape) project
+features: **business**, **application** and **flow** views — plus KPI
+dashboards, facility comparison and a setup wizard.
 
-Le projet it-landscape d'origine fonctionne *à côté* de NetBox (lecture par API +
-tags `app:XXX`). Ce plugin déplace la cartographie *dans* NetBox :
+## Why a plugin?
 
-| Concept it-landscape | Dans le plugin |
+The original it-landscape project runs *next to* NetBox (API reads + `app:XXX`
+tags). This plugin moves the cartography *inside* NetBox:
+
+| it-landscape concept | In the plugin |
 |---|---|
-| Établissement | **Site NetBox** (natif) |
-| Domaine métier | Modèle `BusinessDomain` (rattaché au site) |
-| Processus | Modèle `BusinessProcess` |
-| Application (criticité, interfaces…) | Modèle `Application` — **unique dans le référentiel**, rattachée à N processus |
-| Drapeau `multiEtablissement` | **Dérivé** : une application liée à des processus de plusieurs sites est multi-site |
-| Trigramme (clé de jointure JSON) | **Supprimé** — remplacé par de vraies relations (FK / M2M) |
-| Flux applicatif (protocole, message, EAI…) | Modèle `ApplicationFlow` (avec FK établissement) |
-| Serveurs liés par tag `app:XXX` | **Relations M2M directes** vers VM / Device |
+| Facility | **NetBox Site** (native) |
+| Business domain | `BusinessDomain` model (attached to the site) |
+| Process | `BusinessProcess` model |
+| Application (criticality, interfaces…) | `Application` model — **unique in the referential**, attached to N processes |
+| `multiEtablissement` flag | **Derived**: an application linked to processes of several sites is multi-site |
+| Trigram (JSON join key) | **Removed** — replaced by real relations (FK / M2M) |
+| Application flow (protocol, message, EAI…) | `ApplicationFlow` model (with facility FK) |
+| Servers linked by `app:XXX` tag | **Direct M2M relations** to VM / Device |
 
-Bénéfices de l'intégration native : changelog et journal NetBox sur chaque objet,
-permissions par objet, recherche globale, API REST + filtres, custom fields, tags,
-et panneaux contextuels injectés sur les pages Site / VM / Device.
+Native integration benefits: NetBox changelog and journal on every object,
+per-object permissions, global search, REST API + filters, custom fields,
+tags, and contextual panels injected on Site / VM / Device pages.
 
-## Fonctionnalités
+## Features
 
-- **Vue métier** (`/plugins/it-landscape/metier/`) : établissements → domaines
-  (couleurs) → processus → cartes applications avec criticité et interfaces actives.
-- **Vue applicative** (`/plugins/it-landscape/applicatif/`) : applications
-  regroupées par trigramme avec leurs serveurs (VM/devices), IP et rôles.
-- **Vue flux** (`/plugins/it-landscape/cartographie-flux/`) : table filtrable
-  (établissement, interface, protocole, EAI) + diagramme SVG source → cible
-  coloré par type d'interface.
-- **CRUD complet** : domaines, processus, applications, flux (formulaires,
-  filtres, suppression en masse, changelog, journal).
-- **API REST** : `/api/plugins/it-landscape/…` (4 endpoints, filtres inclus).
-- **Recherche globale NetBox** : applications, flux, domaines, processus indexés.
-- **Panneaux contextuels** : applications affichées sur les pages VM / Device,
-  synthèse cartographie sur la page Site.
-- **Synthèse KPI** (`/plugins/it-landscape/synthese/`) : compteurs clés,
-  points d'attention (critiques sans serveur/supervision…), dépendance EAI,
-  applications les plus connectées, top éditeurs.
-- **Comparaison d'établissements** (`/plugins/it-landscape/comparaison/`) :
-  matrice de similarité (Jaccard), applications déjà mutualisées,
-  **opportunités de convergence** (même processus, applications différentes),
-  spécificités par établissement.
-- **Assistant d'initialisation** (`/plugins/it-landscape/initialisation/`) :
-  bundles de modélisation prêts à l'emploi — **SIH** (hôpital : GAP, DPI,
-  pharmacie, imagerie… avec flux HL7/DICOM) et **Industrie** (ERP, MES,
-  SCADA, WMS… avec flux OPC-UA/EDI) — structure domaines/processus +
-  applications, VLAN, VM et flux d'exemple, en un clic.
-- **Multilingue** : interface en anglais, traduction française complète
-  (suivant la langue de l'utilisateur NetBox).
-- **Import des données it-landscape** : commande `import_it_landscape`.
+- **Business view** (`/plugins/it-landscape/metier/`): facilities → colored
+  domains → processes → application cards with criticality and active
+  interfaces. Detailed mode and condensed, print-friendly **landscape mode**.
+- **Application view** (`/plugins/it-landscape/applicatif/`): referential
+  applications with their servers (VMs/devices), IPs and roles.
+- **Flow view** (`/plugins/it-landscape/cartographie-flux/`): filterable table
+  (facility, interface, protocol, EAI) + source → target SVG diagram colored
+  by interface type.
+- **KPI summary** (`/plugins/it-landscape/synthese/`): key counters, attention
+  points (critical apps without server/monitoring…), EAI dependency, most
+  connected applications, top vendors.
+- **Facility comparison** (`/plugins/it-landscape/comparaison/`): similarity
+  matrix (Jaccard), already-mutualized applications, **convergence
+  opportunities** (same process, different applications), facility-specific
+  applications.
+- **Setup wizard** (`/plugins/it-landscape/initialisation/`): ready-to-use
+  modeling bundles — **Hospital IS (SIH)** (admissions, EHR, pharmacy,
+  imaging… with HL7/DICOM flows through an EAI) and **Manufacturing** (ERP,
+  MES, SCADA, WMS… with OPC-UA/EDI flows through an ESB) — domain/process
+  structure + sample applications, VLANs, VMs and flows, in one click.
+- **Multilingual**: English interface with a full French translation
+  (follows the NetBox user language preference).
+- **Full CRUD**: domains, processes, applications, flows (forms, filters,
+  bulk delete, changelog, journal).
+- **REST API**: `/api/plugins/it-landscape/…` (4 endpoints, filters included).
+- **NetBox global search**: applications, flows, domains, processes indexed.
+- **Contextual panels**: applications shown on VM / Device pages, cartography
+  summary on the Site page.
+- **it-landscape data import**: `import_it_landscape` management command.
 
 ## Installation
 
 ```bash
-pip install netbox-it-landscape   # ou pip install -e /chemin/vers/le/repo
+pip install netbox-it-landscape   # or pip install -e /path/to/the/repo
 ```
 
-Dans `configuration.py` (ou `/etc/netbox/config/plugins.py` avec netbox-docker) :
+In `configuration.py` (or `/etc/netbox/config/plugins.py` with netbox-docker):
 
 ```python
 PLUGINS = ["netbox_it_landscape"]
 ```
 
-Puis :
+Then:
 
 ```bash
 python manage.py migrate
 ```
 
-### Développement avec la stack it-landscape (Docker)
+### Development with the it-landscape Docker stack
 
-Le fichier [`docker-compose.override.yml`](https://github.com/lquastana/it-landscape)
-fourni dans le dépôt it-landscape monte ce plugin dans le conteneur NetBox,
-l'installe en mode editable et l'active. Depuis le dépôt it-landscape :
+The `docker-compose.override.yml` file provided in the it-landscape repository
+mounts this plugin into the NetBox container, installs it in editable mode and
+enables it. From the it-landscape repository:
 
 ```bash
 docker compose --profile netbox up -d --force-recreate netbox
 ```
 
-## Import des données existantes
+## Importing existing data
 
-Les fichiers JSON du projet it-landscape (`<etab>.json`, `<etab>.flux.json`,
-`<etab>.infra.json`, `trigrammes.json`) s'importent en une commande :
+The it-landscape project JSON files (`<facility>.json`, `<facility>.flux.json`,
+`<facility>.infra.json`, `trigrammes.json`) can be imported in one command:
 
 ```bash
 python manage.py import_it_landscape /opt/it-landscape-data --create-sites --with-infra
 ```
 
-- Les **sites** sont résolus par nom (`--create-sites` pour créer les manquants).
-- Les applications sont **unifiées par nom** : une application présente dans
-  plusieurs établissements devient une seule fiche multi-site. Les trigrammes
-  des fichiers JSON ne servent que de clé de résolution pendant l'import.
-- `--with-infra` crée aussi l'infrastructure NetBox de test : **VM** (vCPU, RAM,
-  disque, interface eth0, IP primaire, tag `app:XXX`) depuis `*.infra.json`,
-  **VLAN, préfixes et passerelles** depuis `*.network.json`.
-- Les **VM NetBox** sont rattachées aux applications via les fichiers `*.infra.json`.
-- Les applications référencées uniquement par les flux (EAI, supervision…) sont
-  créées dans un domaine « Hors référentiel métier ».
-- La commande est **idempotente** (relançable sans doublons).
+- **Sites** are resolved by name (`--create-sites` creates missing ones).
+- Applications are **unified by name**: an application present in several
+  facilities becomes a single multi-site record. Trigrams from the JSON files
+  are only used as a resolution key during import.
+- `--with-infra` also creates the test infrastructure: **VMs** (vCPU, RAM,
+  disk, eth0 interface, primary IP, `app:XXX` tag) from `*.infra.json`,
+  **VLANs, prefixes and gateways** from `*.network.json`.
+- **NetBox VMs** are attached to applications via the `*.infra.json` files.
+- Applications referenced only by flows (EAI, monitoring…) are created in an
+  "Out of business referential" domain.
+- The command is **idempotent** (safe to re-run, no duplicates).
 
-## Compatibilité
+## Compatibility
 
-- NetBox ≥ 4.0 (testé sur 4.3)
+- NetBox ≥ 4.0 (tested on 4.3)
 - Python ≥ 3.10
 
-## Licence
+## License
 
 MIT
