@@ -73,10 +73,13 @@ Les fichiers JSON du projet it-landscape (`<etab>.json`, `<etab>.flux.json`,
 `<etab>.infra.json`, `trigrammes.json`) s'importent en une commande :
 
 ```bash
-python manage.py import_it_landscape /opt/it-landscape-data --create-sites
+python manage.py import_it_landscape /opt/it-landscape-data --create-sites --with-infra
 ```
 
 - Les **sites** sont résolus par nom (`--create-sites` pour créer les manquants).
+- `--with-infra` crée aussi l'infrastructure NetBox de test : **VM** (vCPU, RAM,
+  disque, interface eth0, IP primaire, tag `app:XXX`) depuis `*.infra.json`,
+  **VLAN, préfixes et passerelles** depuis `*.network.json`.
 - Les **VM NetBox** sont rattachées aux applications via les fichiers `*.infra.json`.
 - Les applications référencées uniquement par les flux (EAI, supervision…) sont
   créées dans un domaine « Hors référentiel métier ».

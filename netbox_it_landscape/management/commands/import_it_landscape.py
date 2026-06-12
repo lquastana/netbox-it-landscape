@@ -17,7 +17,9 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils.text import slugify
 
 from dcim.models import Site
-from virtualization.models import VirtualMachine
+from extras.models import Tag
+from ipam.models import IPAddress, Prefix, VLAN
+from virtualization.models import VirtualMachine, VMInterface
 
 from netbox_it_landscape.choices import (
     CriticalityChoices,
@@ -60,6 +62,10 @@ class Command(BaseCommand):
             '--create-sites', action='store_true',
             help="Crée les sites NetBox manquants au lieu de les ignorer",
         )
+        parser.add_argument(
+            '--with-infra', action='store_true',
+            help="Crée aussi l'infrastructure NetBox : VM (IP, interfaces, tags), VLAN, préfixes et passerelles",
+        )
 
     def handle(self, *args, **options):
         data_dir = Path(options['data_dir'])
@@ -67,9 +73,11 @@ class Command(BaseCommand):
             raise CommandError(f'Répertoire introuvable : {data_dir}')
 
         self.create_sites = options['create_sites']
+        self.with_infra = options['with_infra']
         self.stats = {
             'domains': 0, 'processes': 0, 'applications': 0,
             'flows': 0, 'vm_links': 0, 'skipped_flows': 0,
+            'vms': 0, 'vlans': 0, 'prefixes': 0,
         }
 
         self.trigramme_names = self._load_json(data_dir / 'trigrammes.json') or {}
@@ -88,9 +96,10 @@ class Command(BaseCommand):
                 continue
             base = metier_file.stem
             infra = self._load_json(data_dir / f'{base}.infra.json')
+            network = self._load_json(data_dir / f'{base}.network.json')
             flux = self._load_json(data_dir / f'{base}.flux.json')
             for etab in data['etablissements']:
-                self._import_etablissement(etab, infra, flux)
+                self._import_etablissement(etab, infra, network, flux)
 
         self.stdout.write(self.style.SUCCESS(
             "Import terminé : "
@@ -99,6 +108,11 @@ class Command(BaseCommand):
             f"{self.stats['applications']} applications, "
             f"{self.stats['flows']} flux, "
             f"{self.stats['vm_links']} liens VM"
+            + (
+                f", {self.stats['vms']} VM, {self.stats['vlans']} VLAN, "
+                f"{self.stats['prefixes']} préfixes"
+                if self.with_infra else ""
+            )
             + (f" ({self.stats['skipped_flows']} flux ignorés)" if self.stats['skipped_flows'] else "")
         ))
 
@@ -124,7 +138,7 @@ class Command(BaseCommand):
         ))
         return None
 
-    def _import_etablissement(self, etab, infra, flux):
+    def _import_etablissement(self, etab, infra, network, flux):
         name = (etab.get('nom') or '').strip()
         if not name:
             return
@@ -133,6 +147,13 @@ class Command(BaseCommand):
             return
 
         self.stdout.write(self.style.MIGRATE_HEADING(f'Établissement : {name}'))
+
+        # Infrastructure NetBox (VM, VLAN, préfixes) avant le rattachement
+        if self.with_infra:
+            if infra:
+                self._seed_vms(site, infra)
+            if network:
+                self._seed_network(site, network)
 
         # Domaines → processus → applications
         app_index = {}
@@ -197,6 +218,104 @@ class Command(BaseCommand):
         if created:
             self.stats['applications'] += 1
         return app
+
+    def _seed_vms(self, site, infra):
+        """Crée les VM NetBox du fichier *.infra.json (IP primaire, interface, tag app:XXX)."""
+        for server in infra.get('serveurs', []):
+            vm_name = (server.get('VM') or '').strip()
+            if not vm_name:
+                continue
+
+            tri = (server.get('trigramme') or '').strip().upper()
+            comments = '\n'.join(filter(None, [
+                f"OS: {server['OS']}" if server.get('OS') else '',
+                f"Backup: {server['Backup']}" if server.get('Backup') else '',
+                f"Éditeur: {server['Editeur']}" if server.get('Editeur') else '',
+                f"Contact: {server['Contact']}" if server.get('Contact') else '',
+            ]))
+
+            vm, created = VirtualMachine.objects.get_or_create(
+                name=vm_name, site=site,
+                defaults={
+                    'status': 'active',
+                    'description': (server.get('RoleServeur') or '')[:200],
+                    'vcpus': server.get('CPUs') or None,
+                    'memory': server.get('MemoryMiB') or None,
+                    'disk': round((server.get('TotalDiskCapacityMiB') or 0) / 1024) or None,
+                    'comments': comments,
+                },
+            )
+            if created:
+                self.stats['vms'] += 1
+
+            if tri:
+                tag_name = f'app:{tri}'
+                tag, _ = Tag.objects.get_or_create(
+                    slug=slugify(tag_name),
+                    defaults={'name': tag_name, 'color': '0d6efd'},
+                )
+                vm.tags.add(tag)
+
+            ip_value = (server.get('PrimaryIPAddress') or '').strip()
+            if ip_value and not vm.primary_ip4:
+                iface, _ = VMInterface.objects.get_or_create(
+                    virtual_machine=vm, name='eth0',
+                )
+                address = f'{ip_value}/32'
+                ip = IPAddress.objects.filter(address=address).first()
+                if not ip:
+                    ip = IPAddress(address=address, status='active')
+                if not ip.assigned_object_id:
+                    ip.assigned_object = iface
+                    ip.save()
+                    vm.primary_ip4 = ip
+                    vm.save()
+
+    def _seed_network(self, site, network):
+        """Crée les VLAN, préfixes et passerelles du fichier *.network.json."""
+        for vlan_data in network.get('vlans', []):
+            vid = vlan_data.get('id')
+            if not vid:
+                continue
+            vlan, created = VLAN.objects.get_or_create(
+                vid=vid, site=site,
+                defaults={
+                    'name': (vlan_data.get('nom') or f'VLAN-{vid}')[:64],
+                    'description': (vlan_data.get('description') or '')[:200],
+                    'status': 'active',
+                },
+            )
+            if created:
+                self.stats['vlans'] += 1
+
+            cidr = (vlan_data.get('network') or '').strip()
+            if cidr:
+                prefix = Prefix.objects.filter(prefix=cidr).first()
+                if not prefix:
+                    prefix = Prefix(
+                        prefix=cidr,
+                        vlan=vlan,
+                        status='active',
+                        description=(vlan_data.get('description') or '')[:200],
+                    )
+                    # NetBox ≥ 4.2 : rattachement par « scope », avant : champ site
+                    if hasattr(prefix, 'scope'):
+                        prefix.scope = site
+                    elif hasattr(prefix, 'site'):
+                        prefix.site = site
+                    prefix.save()
+                    self.stats['prefixes'] += 1
+
+            gateway = (vlan_data.get('gateway') or '').strip()
+            if gateway:
+                address = f'{gateway}/32'
+                if not IPAddress.objects.filter(address=address).exists():
+                    IPAddress.objects.create(
+                        address=address,
+                        status='active',
+                        role='anycast',
+                        description=f"Passerelle {vlan_data.get('nom') or vid}",
+                    )
 
     def _link_servers(self, site, infra, app_index):
         vm_names_by_trigramme = {}
