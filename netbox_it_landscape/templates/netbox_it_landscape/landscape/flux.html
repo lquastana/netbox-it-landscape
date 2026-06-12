@@ -10,7 +10,7 @@
   .itl-diagram { overflow-x: auto; }
   .itl-flow-table { font-size: .82rem; }
   .itl-node { fill: var(--tblr-bg-surface, #fff); stroke: #94a3b8; rx: 6px; }
-  .itl-node-label { font-size: 13px; font-weight: 600; fill: currentColor; }
+  .itl-node-label { font-size: 12px; font-weight: 600; fill: currentColor; }
   .itl-edge:hover { stroke-width: 4; }
 </style>
 
@@ -86,12 +86,18 @@
           </path>
         {% endfor %}
         {% for node in svg.left_nodes %}
-          <rect class="itl-node" x="{{ node.x }}" y="{{ node.y }}" width="{{ svg.node_width }}" height="{{ svg.node_height }}" rx="6"></rect>
-          <text class="itl-node-label" x="{{ node.x|add:12 }}" y="{{ node.y|add:22 }}">{{ node.label }}</text>
+          <g>
+            <title>{{ node.label }}</title>
+            <rect class="itl-node" x="{{ node.x }}" y="{{ node.y }}" width="{{ svg.node_width }}" height="{{ svg.node_height }}" rx="6"></rect>
+            <text class="itl-node-label" x="{{ node.x|add:12 }}" y="{{ node.y|add:22 }}">{{ node.display }}</text>
+          </g>
         {% endfor %}
         {% for node in svg.right_nodes %}
-          <rect class="itl-node" x="{{ node.x }}" y="{{ node.y }}" width="{{ svg.node_width }}" height="{{ svg.node_height }}" rx="6"></rect>
-          <text class="itl-node-label" x="{{ node.x|add:12 }}" y="{{ node.y|add:22 }}">{{ node.label }}</text>
+          <g>
+            <title>{{ node.label }}</title>
+            <rect class="itl-node" x="{{ node.x }}" y="{{ node.y }}" width="{{ svg.node_width }}" height="{{ svg.node_height }}" rx="6"></rect>
+            <text class="itl-node-label" x="{{ node.x|add:12 }}" y="{{ node.y|add:22 }}">{{ node.display }}</text>
+          </g>
         {% endfor %}
       </svg>
     </div>
@@ -121,8 +127,8 @@
         {% for flow in flows %}
           <tr>
             <td><a href="{{ flow.get_absolute_url }}">{{ flow.flow_id|default:flow.pk }}</a></td>
-            <td><a href="{{ flow.source.get_absolute_url }}">{{ flow.source.trigramme|default:flow.source.name }}</a></td>
-            <td><a href="{{ flow.target.get_absolute_url }}">{{ flow.target.trigramme|default:flow.target.name }}</a></td>
+            <td><a href="{{ flow.source.get_absolute_url }}">{{ flow.source.name }}</a></td>
+            <td><a href="{{ flow.target.get_absolute_url }}">{{ flow.target.name }}</a></td>
             <td>{{ flow.protocol|default:'—' }}</td>
             <td>{{ flow.port|default:'—' }}</td>
             <td>{{ flow.message_type|default:'—' }}</td>

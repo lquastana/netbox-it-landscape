@@ -361,8 +361,9 @@ class FluxLandscapeView(LoginRequiredMixin, View):
 
     NODE_HEIGHT = 34
     NODE_GAP = 22
-    NODE_WIDTH = 150
-    SVG_WIDTH = 920
+    NODE_WIDTH = 230
+    SVG_WIDTH = 1100
+    LABEL_MAX = 28
 
     def get(self, request):
         site_id = request.GET.get('site_id') or ''
@@ -427,7 +428,12 @@ class FluxLandscapeView(LoginRequiredMixin, View):
             return None
 
         def label(app):
-            return app.trigramme or app.name[:12]
+            return app.name
+
+        def display(name):
+            if len(name) > self.LABEL_MAX:
+                return name[:self.LABEL_MAX - 1] + '…'
+            return name
 
         sources, targets = [], []
         for flow in flows:
@@ -436,8 +442,8 @@ class FluxLandscapeView(LoginRequiredMixin, View):
                 sources.append(src)
             if dst not in targets:
                 targets.append(dst)
-        sources.sort()
-        targets.sort()
+        sources.sort(key=str.lower)
+        targets.sort(key=str.lower)
 
         step = self.NODE_HEIGHT + self.NODE_GAP
         left_x = 10
@@ -447,11 +453,11 @@ class FluxLandscapeView(LoginRequiredMixin, View):
         mid_x = self.SVG_WIDTH // 2
 
         left_nodes = [
-            {'label': name, 'x': left_x, 'y': 20 + i * step}
+            {'label': name, 'display': display(name), 'x': left_x, 'y': 20 + i * step}
             for i, name in enumerate(sources)
         ]
         right_nodes = [
-            {'label': name, 'x': right_x, 'y': 20 + i * step}
+            {'label': name, 'display': display(name), 'x': right_x, 'y': 20 + i * step}
             for i, name in enumerate(targets)
         ]
         left_index = {node['label']: node for node in left_nodes}

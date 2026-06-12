@@ -220,9 +220,7 @@ class ApplicationFlow(NetBoxModel):
         verbose_name_plural = 'flux applicatifs'
 
     def __str__(self):
-        src = self.source.trigramme or self.source.name
-        dst = self.target.trigramme or self.target.name
-        label = f'{src} → {dst}'
+        label = f'{self.source.name} → {self.target.name}'
         if self.protocol:
             label += f' ({self.protocol})'
         return label
