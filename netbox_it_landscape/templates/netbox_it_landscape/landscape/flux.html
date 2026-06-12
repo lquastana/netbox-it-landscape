@@ -1,0 +1,138 @@
+{% extends 'base/layout.html' %}
+
+{% block title %}Vue flux{% endblock %}
+
+{% block content %}
+<style>
+  .itl-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: end; margin-bottom: 1rem; }
+  .itl-legend { display: flex; gap: .8rem; flex-wrap: wrap; font-size: .75rem; margin-bottom: .5rem; }
+  .itl-legend span::before { content: ''; display: inline-block; width: .7rem; height: .7rem; border-radius: 2px; margin-right: .3rem; background: var(--c); vertical-align: -1px; }
+  .itl-diagram { overflow-x: auto; }
+  .itl-flow-table { font-size: .82rem; }
+  .itl-node { fill: var(--tblr-bg-surface, #fff); stroke: #94a3b8; rx: 6px; }
+  .itl-node-label { font-size: 13px; font-weight: 600; fill: currentColor; }
+  .itl-edge:hover { stroke-width: 4; }
+</style>
+
+<div class="itl-toolbar">
+  <div class="me-auto">
+    <h1 class="mb-0">Vue flux</h1>
+    <div class="text-muted">Flux applicatifs : source, cible, protocole, message et EAI</div>
+  </div>
+  <form method="get" class="d-flex flex-wrap gap-2 align-items-end">
+    <div>
+      <label class="form-label mb-1">Établissement</label>
+      <select name="site_id" class="form-select form-select-sm">
+        <option value="">Tous</option>
+        {% for site in sites_choices %}
+          <option value="{{ site.pk }}" {% if filter_site_id == site.pk|stringformat:'s' %}selected{% endif %}>{{ site.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="form-label mb-1">Type d'interface</label>
+      <select name="interface_type" class="form-select form-select-sm">
+        <option value="">Tous</option>
+        {% for choice in interface_choices %}
+          <option value="{{ choice.0 }}" {% if filter_interface_type == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="form-label mb-1">Protocole</label>
+      <select name="protocol" class="form-select form-select-sm">
+        <option value="">Tous</option>
+        {% for p in protocols %}
+          <option value="{{ p }}" {% if filter_protocol == p %}selected{% endif %}>{{ p }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="form-label mb-1">EAI</label>
+      <select name="eai" class="form-select form-select-sm">
+        <option value="">Tous</option>
+        {% for e in eais %}
+          <option value="{{ e }}" {% if filter_eai == e %}selected{% endif %}>{{ e }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="form-label mb-1">Recherche</label>
+      <input type="text" name="q" value="{{ filter_q }}" class="form-control form-control-sm" placeholder="Trigramme, message…">
+    </div>
+    <button type="submit" class="btn btn-sm btn-primary">Filtrer</button>
+  </form>
+</div>
+
+<div class="itl-legend">
+  {% for item in legend %}
+    <span style="--c: {{ item.color }};">{{ item.label }}</span>
+  {% endfor %}
+</div>
+
+{% if svg %}
+  <div class="card mb-3">
+    <div class="card-header d-flex justify-content-between">
+      <h2 class="mb-0" style="font-size: 1rem;">Diagramme source → cible</h2>
+      <span class="text-muted">{{ flows|length }} flux</span>
+    </div>
+    <div class="card-body itl-diagram">
+      <svg viewBox="0 0 {{ svg.width }} {{ svg.height }}" width="{{ svg.width }}" height="{{ svg.height }}" xmlns="http://www.w3.org/2000/svg">
+        {% for edge in svg.edges %}
+          <path class="itl-edge"
+                d="M {{ edge.x1 }} {{ edge.y1 }} C {{ edge.cx }} {{ edge.y1 }}, {{ edge.cx }} {{ edge.y2 }}, {{ edge.x2 }} {{ edge.y2 }}"
+                stroke="{{ edge.color }}" stroke-width="2" fill="none" opacity="0.75">
+            <title>{{ edge.title }}</title>
+          </path>
+        {% endfor %}
+        {% for node in svg.left_nodes %}
+          <rect class="itl-node" x="{{ node.x }}" y="{{ node.y }}" width="{{ svg.node_width }}" height="{{ svg.node_height }}" rx="6"></rect>
+          <text class="itl-node-label" x="{{ node.x|add:12 }}" y="{{ node.y|add:22 }}">{{ node.label }}</text>
+        {% endfor %}
+        {% for node in svg.right_nodes %}
+          <rect class="itl-node" x="{{ node.x }}" y="{{ node.y }}" width="{{ svg.node_width }}" height="{{ svg.node_height }}" rx="6"></rect>
+          <text class="itl-node-label" x="{{ node.x|add:12 }}" y="{{ node.y|add:22 }}">{{ node.label }}</text>
+        {% endfor %}
+      </svg>
+    </div>
+  </div>
+{% else %}
+  <div class="alert alert-info">Aucun flux ne correspond à ces critères.</div>
+{% endif %}
+
+{% if flows %}
+  <div class="card">
+    <h2 class="card-header" style="font-size: 1rem;">Liste des flux</h2>
+    <table class="table table-hover itl-flow-table">
+      <thead>
+        <tr>
+          <th>Identifiant</th>
+          <th>Source</th>
+          <th>Cible</th>
+          <th>Protocole</th>
+          <th>Port</th>
+          <th>Message</th>
+          <th>Interface</th>
+          <th>EAI</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for flow in flows %}
+          <tr>
+            <td><a href="{{ flow.get_absolute_url }}">{{ flow.flow_id|default:flow.pk }}</a></td>
+            <td><a href="{{ flow.source.get_absolute_url }}">{{ flow.source.trigramme|default:flow.source.name }}</a></td>
+            <td><a href="{{ flow.target.get_absolute_url }}">{{ flow.target.trigramme|default:flow.target.name }}</a></td>
+            <td>{{ flow.protocol|default:'—' }}</td>
+            <td>{{ flow.port|default:'—' }}</td>
+            <td>{{ flow.message_type|default:'—' }}</td>
+            <td><span class="badge text-bg-{{ flow.get_interface_type_color }}">{{ flow.get_interface_type_display }}</span></td>
+            <td>{{ flow.eai|default:'—' }}</td>
+            <td class="text-muted">{{ flow.description|default:'' }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+{% endblock %}

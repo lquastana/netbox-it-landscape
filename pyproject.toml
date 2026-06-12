@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "netbox-it-landscape"
+version = "0.1.0"
+description = "Plugin NetBox : cartographie applicative hospitalière (vues métier, applicative et flux)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Laurent Quastana" }]
+keywords = ["netbox", "netbox-plugin", "cartography", "application-landscape"]
+classifiers = [
+    "Framework :: Django",
+    "Programming Language :: Python :: 3",
+]
+
+[project.urls]
+Source = "https://github.com/lquastana/netbox-it-landscape"
+
+[tool.setuptools.packages.find]
+include = ["netbox_it_landscape*"]
+
+[tool.setuptools.package-data]
+netbox_it_landscape = ["templates/**/*"]

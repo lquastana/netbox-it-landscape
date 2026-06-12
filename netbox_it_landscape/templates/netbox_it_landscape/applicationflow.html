@@ -1,0 +1,58 @@
+{% extends 'generic/object.html' %}
+{% load helpers %}
+
+{% block content %}
+  <div class="row">
+    <div class="col col-12 col-md-6">
+      <div class="card">
+        <h2 class="card-header">Flux applicatif</h2>
+        <table class="table table-hover attr-table">
+          <tr>
+            <th scope="row">Identifiant</th>
+            <td>{{ object.flow_id|placeholder }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Application source</th>
+            <td>{{ object.source|linkify }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Application cible</th>
+            <td>{{ object.target|linkify }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Établissement</th>
+            <td>{{ object.source.process.domain.site|linkify }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Protocole</th>
+            <td>{{ object.protocol|placeholder }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Port</th>
+            <td>{{ object.port|placeholder }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Type de message</th>
+            <td>{{ object.message_type|placeholder }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Type d'interface</th>
+            <td><span class="badge text-bg-{{ object.get_interface_type_color }}">{{ object.get_interface_type_display }}</span></td>
+          </tr>
+          <tr>
+            <th scope="row">EAI</th>
+            <td>{{ object.eai|placeholder }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Description</th>
+            <td>{{ object.description|placeholder }}</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+    <div class="col col-12 col-md-6">
+      {% include 'inc/panels/custom_fields.html' %}
+      {% include 'inc/panels/tags.html' %}
+    </div>
+  </div>
+{% endblock %}

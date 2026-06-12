@@ -1,0 +1,143 @@
+{% extends 'base/layout.html' %}
+
+{% block title %}Vue métier{% endblock %}
+
+{% block content %}
+<style>
+  .itl-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: end; margin-bottom: 1rem; }
+  .itl-etab { margin-bottom: 1.5rem; }
+  .itl-etab-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .5rem; }
+  .itl-etab-stats { display: flex; gap: .5rem; }
+  .itl-domain { border-radius: .5rem; padding: .75rem 1rem; margin-bottom: .75rem; border: 1px solid rgba(0,0,0,.07); }
+  .itl-domain summary { cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 1rem; list-style: none; }
+  .itl-domain summary::-webkit-details-marker { display: none; }
+  .itl-domain-title strong { font-size: 1rem; }
+  .itl-domain-title em { display: block; font-style: normal; opacity: .7; font-size: .8rem; }
+  .itl-process { background: rgba(255,255,255,.55); border: 1px solid rgba(0,0,0,.06); border-radius: .4rem; padding: .6rem .8rem; margin-top: .6rem; }
+  [data-bs-theme="dark"] .itl-process { background: rgba(0,0,0,.25); }
+  .itl-process summary { cursor: pointer; display: flex; justify-content: space-between; gap: 1rem; list-style: none; }
+  .itl-process summary::-webkit-details-marker { display: none; }
+  .itl-app-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .itl-app-card { border: 1px solid rgba(0,0,0,.1); border-left: 4px solid #94a3b8; border-radius: .4rem; padding: .55rem .7rem; background: var(--tblr-bg-surface, #fff); }
+  .itl-app-card.is-critical { border-left-color: #dc2626; }
+  .itl-app-topline { display: flex; justify-content: space-between; align-items: center; margin-bottom: .25rem; }
+  .itl-app-card h5 { margin: 0 0 .2rem; font-size: .9rem; }
+  .itl-app-card h5 a { text-decoration: none; }
+  .itl-app-card p { margin: 0 0 .35rem; font-size: .76rem; opacity: .75; }
+  .itl-app-meta { font-size: .72rem; opacity: .65; margin-bottom: .35rem; display: flex; gap: .6rem; flex-wrap: wrap; }
+  .itl-chips { display: flex; flex-wrap: wrap; gap: .25rem; }
+  .itl-chip { font-size: .68rem; padding: .1rem .45rem; border-radius: 999px; border: 1px solid; }
+</style>
+
+<div class="itl-toolbar">
+  <div class="me-auto">
+    <h1 class="mb-0">Vue métier</h1>
+    <div class="text-muted">Établissements, domaines, processus et applications</div>
+  </div>
+  <form method="get" class="d-flex flex-wrap gap-2 align-items-end">
+    <div>
+      <label class="form-label mb-1">Établissement</label>
+      <select name="site_id" class="form-select form-select-sm">
+        <option value="">Tous</option>
+        {% for site in sites_choices %}
+          <option value="{{ site.pk }}" {% if filter_site_id == site.pk|stringformat:'s' %}selected{% endif %}>{{ site.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="form-label mb-1">Criticité</label>
+      <select name="criticality" class="form-select form-select-sm">
+        <option value="">Toutes</option>
+        {% for choice in criticality_choices %}
+          <option value="{{ choice.0 }}" {% if filter_criticality == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="form-label mb-1">Recherche</label>
+      <input type="text" name="q" value="{{ filter_q }}" class="form-control form-control-sm" placeholder="Nom, trigramme, éditeur…">
+    </div>
+    <button type="submit" class="btn btn-sm btn-primary">Filtrer</button>
+  </form>
+</div>
+
+{% if not sites %}
+  <div class="alert alert-info">
+    Aucune application ne correspond à ces critères.
+    {% if not filter_q and not filter_site_id and not filter_criticality %}
+      Importez vos données avec <code>manage.py import_it_landscape</code> ou créez des domaines depuis le menu <strong>IT Landscape</strong>.
+    {% endif %}
+  </div>
+{% endif %}
+
+{% for entry in sites %}
+  <section class="card itl-etab">
+    <div class="card-body">
+      <div class="itl-etab-header mb-2">
+        <h2 class="mb-0"><a href="{{ entry.site.get_absolute_url }}">{{ entry.site.name }}</a></h2>
+        <div class="itl-etab-stats">
+          <span class="badge text-bg-secondary">{{ entry.domains|length }} domaine{{ entry.domains|length|pluralize }}</span>
+          <span class="badge text-bg-blue">{{ entry.app_count }} application{{ entry.app_count|pluralize }}</span>
+          {% if entry.critical_count %}
+            <span class="badge text-bg-red">{{ entry.critical_count }} critique{{ entry.critical_count|pluralize }}</span>
+          {% endif %}
+        </div>
+      </div>
+
+      {% for dom in entry.domains %}
+        <details class="itl-domain" open style="background-color: #{{ dom.domain.color }};">
+          <summary>
+            <span class="itl-domain-title">
+              <strong><a href="{{ dom.domain.get_absolute_url }}" style="color: inherit;">{{ dom.domain.name }}</a></strong>
+              {% if dom.domain.description %}<em>{{ dom.domain.description }}</em>{% endif %}
+            </span>
+            <span class="d-flex gap-2">
+              <span class="badge text-bg-secondary">{{ dom.processes|length }} processus</span>
+              <span class="badge text-bg-blue">{{ dom.app_count }} apps</span>
+              {% if dom.critical_count %}<span class="badge text-bg-red">{{ dom.critical_count }} critiques</span>{% endif %}
+            </span>
+          </summary>
+
+          {% for proc in dom.processes %}
+            <details class="itl-process" open>
+              <summary>
+                <span>
+                  <strong><a href="{{ proc.process.get_absolute_url }}" style="color: inherit;">{{ proc.process.name }}</a></strong>
+                  {% if proc.process.description %}<span class="text-muted ms-2">{{ proc.process.description }}</span>{% endif %}
+                </span>
+                <span class="d-flex gap-2">
+                  <span class="badge text-bg-secondary">{{ proc.applications|length }} apps</span>
+                  {% if proc.critical_count %}<span class="badge text-bg-red">{{ proc.critical_count }} critiques</span>{% endif %}
+                </span>
+              </summary>
+              <div class="itl-app-grid">
+                {% for app in proc.applications %}
+                  <article class="itl-app-card {% if app.is_critical %}is-critical{% endif %}">
+                    <div class="itl-app-topline">
+                      <span class="badge text-bg-secondary">{{ app.obj.trigramme|default:'N/A' }}</span>
+                      <span class="badge text-bg-{{ app.obj.get_criticality_color }}">{{ app.obj.get_criticality_display }}</span>
+                    </div>
+                    <h5><a href="{{ app.obj.get_absolute_url }}">{{ app.obj.name }}</a></h5>
+                    <p>{{ app.obj.description|default:'Description non renseignée.' }}</p>
+                    <div class="itl-app-meta">
+                      <span>{{ app.obj.hosting|default:'Hébergement non renseigné' }}</span>
+                      {% if app.obj.multi_site %}<span>Multi-site</span>{% endif %}
+                    </div>
+                    <div class="itl-chips">
+                      {% for chip in app.chips %}
+                        <span class="itl-chip" style="border-color: {{ chip.color }}; background: {{ chip.bg }};">{{ chip.label }}</span>
+                      {% empty %}
+                        <span class="text-muted" style="font-size: .7rem;">Aucune interface active</span>
+                      {% endfor %}
+                    </div>
+                  </article>
+                {% endfor %}
+              </div>
+            </details>
+          {% endfor %}
+        </details>
+      {% endfor %}
+    </div>
+  </section>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends 'generic/object.html' %}
+{% load helpers %}
+{% load render_table from django_tables2 %}
+
+{% block content %}
+  <div class="row">
+    <div class="col col-12 col-md-6">
+      <div class="card">
+        <h2 class="card-header">Application</h2>
+        <table class="table table-hover attr-table">
+          <tr>
+            <th scope="row">Nom</th>
+            <td>{{ object.name }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Trigramme</th>
+            <td>{% if object.trigramme %}<span class="badge text-bg-secondary">{{ object.trigramme }}</span>{% else %}{{ ''|placeholder }}{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row">Processus</th>
+            <td>{{ object.process|linkify }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Domaine</th>
+            <td>{{ object.process.domain|linkify }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Établissement</th>
+            <td>{{ object.process.domain.site|linkify }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Description</th>
+            <td>{{ object.description|placeholder }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Criticité</th>
+            <td><span class="badge text-bg-{{ object.get_criticality_color }}">{{ object.get_criticality_display }}</span></td>
+          </tr>
+          <tr>
+            <th scope="row">Éditeur</th>
+            <td>{{ object.editor|placeholder }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Référent</th>
+            <td>{{ object.referent|placeholder }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Hébergement</th>
+            <td>{{ object.hosting|placeholder }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Multi-établissement</th>
+            <td>{% checkmark object.multi_site %}</td>
+          </tr>
+          <tr>
+            <th scope="row">Supervision</th>
+            <td>
+              {% if object.monitoring_url %}
+                <a href="{{ object.monitoring_url }}" target="_blank" rel="noopener">{{ object.monitoring_url }}</a>
+              {% else %}
+                {{ ''|placeholder }}
+              {% endif %}
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div class="card">
+        <h2 class="card-header">Interfaces actives</h2>
+        <div class="card-body">
+          {% with interfaces=object.active_interfaces %}
+            {% if interfaces %}
+              {% for label in interfaces %}
+                <span class="badge text-bg-blue me-1">{{ label }}</span>
+              {% endfor %}
+            {% else %}
+              <span class="text-muted">Aucune interface active</span>
+            {% endif %}
+          {% endwith %}
+        </div>
+      </div>
+    </div>
+    <div class="col col-12 col-md-6">
+      {% include 'inc/panels/custom_fields.html' %}
+      {% include 'inc/panels/tags.html' %}
+      <div class="card">
+        <h2 class="card-header">Machines virtuelles</h2>
+        {% with vms=object.virtual_machines.all %}
+          {% if vms %}
+            <table class="table table-hover">
+              <thead>
+                <tr><th>Nom</th><th>IP principale</th><th>Cluster</th></tr>
+              </thead>
+              <tbody>
+                {% for vm in vms %}
+                  <tr>
+                    <td>{{ vm|linkify }}</td>
+                    <td>{{ vm.primary_ip4.address.ip|default:'—' }}</td>
+                    <td>{{ vm.cluster|linkify|placeholder }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <div class="card-body text-muted">Aucune machine virtuelle associée</div>
+          {% endif %}
+        {% endwith %}
+      </div>
+      <div class="card">
+        <h2 class="card-header">Équipements</h2>
+        {% with devices=object.devices.all %}
+          {% if devices %}
+            <table class="table table-hover">
+              <thead>
+                <tr><th>Nom</th><th>IP principale</th><th>Site</th></tr>
+              </thead>
+              <tbody>
+                {% for device in devices %}
+                  <tr>
+                    <td>{{ device|linkify }}</td>
+                    <td>{{ device.primary_ip4.address.ip|default:'—' }}</td>
+                    <td>{{ device.site|linkify|placeholder }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <div class="card-body text-muted">Aucun équipement associé</div>
+          {% endif %}
+        {% endwith %}
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col col-12">
+      <div class="card">
+        <h2 class="card-header">Flux sortants</h2>
+        {% render_table outbound_table %}
+      </div>
+      <div class="card">
+        <h2 class="card-header">Flux entrants</h2>
+        {% render_table inbound_table %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

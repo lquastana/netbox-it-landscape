@@ -1,0 +1,23 @@
+{% load helpers %}
+<div class="card">
+  <h2 class="card-header">IT Landscape</h2>
+  <table class="table table-hover attr-table">
+    <tr>
+      <th scope="row">Domaines métier</th>
+      <td><a href="{% url 'plugins:netbox_it_landscape:businessdomain_list' %}?site_id={{ site.pk }}">{{ domain_count }}</a></td>
+    </tr>
+    <tr>
+      <th scope="row">Applications</th>
+      <td><a href="{% url 'plugins:netbox_it_landscape:application_list' %}?site_id={{ site.pk }}">{{ application_count }}</a></td>
+    </tr>
+    <tr>
+      <th scope="row">Flux applicatifs</th>
+      <td><a href="{% url 'plugins:netbox_it_landscape:applicationflow_list' %}?site_id={{ site.pk }}">{{ flow_count }}</a></td>
+    </tr>
+  </table>
+  <div class="card-footer d-flex gap-2">
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'plugins:netbox_it_landscape:business_landscape' %}?site_id={{ site.pk }}">Vue métier</a>
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'plugins:netbox_it_landscape:applicative_landscape' %}?site_id={{ site.pk }}">Vue applicative</a>
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'plugins:netbox_it_landscape:flux_landscape' %}?site_id={{ site.pk }}">Vue flux</a>
+  </div>
+</div>

@@ -1,0 +1,43 @@
+{% extends 'generic/object.html' %}
+{% load helpers %}
+{% load render_table from django_tables2 %}
+
+{% block content %}
+  <div class="row">
+    <div class="col col-12 col-md-6">
+      <div class="card">
+        <h2 class="card-header">Processus métier</h2>
+        <table class="table table-hover attr-table">
+          <tr>
+            <th scope="row">Nom</th>
+            <td>{{ object.name }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Domaine</th>
+            <td>{{ object.domain|linkify }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Établissement</th>
+            <td>{{ object.domain.site|linkify }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Description</th>
+            <td>{{ object.description|placeholder }}</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+    <div class="col col-12 col-md-6">
+      {% include 'inc/panels/custom_fields.html' %}
+      {% include 'inc/panels/tags.html' %}
+    </div>
+  </div>
+  <div class="row">
+    <div class="col col-12">
+      <div class="card">
+        <h2 class="card-header">Applications</h2>
+        {% render_table application_table %}
+      </div>
+    </div>
+  </div>
+{% endblock %}
