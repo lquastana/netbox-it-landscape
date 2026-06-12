@@ -1,6 +1,6 @@
 ﻿from collections import OrderedDict
 
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.db.models import Count, Q
 from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _
@@ -184,6 +184,14 @@ def _interface_chips(app):
     return chips
 
 
+class BaseLandscapeView(LoginRequiredMixin, PermissionRequiredMixin, View):
+    """
+    Base for landscape views: anonymous users are redirected to the login
+    page, authenticated users without the required permission get a 403
+    (Django's AccessMixin default behaviour).
+    """
+
+
 def _landscape_filters(request):
     site_id = request.GET.get('site_id') or ''
     q = (request.GET.get('q') or '').strip()
@@ -192,9 +200,10 @@ def _landscape_filters(request):
     return site_id, q, criticality, sites
 
 
-class BusinessLandscapeView(LoginRequiredMixin, View):
+class BusinessLandscapeView(BaseLandscapeView):
     """Vue métier : établissements → domaines → processus → applications."""
     template_name = 'netbox_it_landscape/landscape/business.html'
+    permission_required = 'netbox_it_landscape.view_application'
 
     def get(self, request):
         site_id, q, criticality, sites_choices = _landscape_filters(request)
@@ -272,9 +281,10 @@ class BusinessLandscapeView(LoginRequiredMixin, View):
         })
 
 
-class ApplicativeLandscapeView(LoginRequiredMixin, View):
+class ApplicativeLandscapeView(BaseLandscapeView):
     """Vue applicative : une carte par application avec ses serveurs et établissements."""
     template_name = 'netbox_it_landscape/landscape/applicative.html'
+    permission_required = 'netbox_it_landscape.view_application'
 
     def get(self, request):
         site_id, q, criticality, sites_choices = _landscape_filters(request)
@@ -336,9 +346,13 @@ class ApplicativeLandscapeView(LoginRequiredMixin, View):
         })
 
 
-class KpiLandscapeView(LoginRequiredMixin, View):
+class KpiLandscapeView(BaseLandscapeView):
     """Synthèse KPI : compteurs, points d'attention, répartitions et hubs."""
     template_name = 'netbox_it_landscape/landscape/kpi.html'
+    permission_required = (
+        'netbox_it_landscape.view_application',
+        'netbox_it_landscape.view_applicationflow',
+    )
 
     def get(self, request):
         site_id = request.GET.get('site_id') or ''
@@ -517,9 +531,10 @@ class KpiLandscapeView(LoginRequiredMixin, View):
         })
 
 
-class FluxLandscapeView(LoginRequiredMixin, View):
+class FluxLandscapeView(BaseLandscapeView):
     """Vue flux : table filtrable et diagramme source → cible."""
     template_name = 'netbox_it_landscape/landscape/flux.html'
+    permission_required = 'netbox_it_landscape.view_applicationflow'
 
     NODE_HEIGHT = 34
     NODE_GAP = 22
@@ -648,12 +663,33 @@ class FluxLandscapeView(LoginRequiredMixin, View):
         }
 
 
-class SetupWizardView(LoginRequiredMixin, View):
+class SetupWizardView(BaseLandscapeView):
     """Setup wizard: apply a sector modeling bundle to a (new or existing) site."""
     template_name = 'netbox_it_landscape/landscape/wizard.html'
+    permission_required = (
+        'netbox_it_landscape.add_businessdomain',
+        'netbox_it_landscape.add_businessprocess',
+    )
 
-    def _check_permission(self, request):
-        return request.user.has_perm('netbox_it_landscape.add_businessdomain')
+    # Permissions required by each optional seeding step. The wizard creates
+    # objects outside the plugin (dcim / ipam / virtualization / extras), so
+    # the user must hold those rights explicitly — no privilege escalation.
+    INFRA_PERMS = (
+        'virtualization.add_virtualmachine',
+        'virtualization.add_vminterface',
+        'ipam.add_vlan',
+        'ipam.add_prefix',
+        'ipam.add_ipaddress',
+        'extras.add_tag',
+    )
+
+    def _option_permissions(self, user):
+        return {
+            'with_apps': user.has_perm('netbox_it_landscape.add_application'),
+            'with_flows': user.has_perm('netbox_it_landscape.add_applicationflow'),
+            'with_infra': all(user.has_perm(perm) for perm in self.INFRA_PERMS),
+            'create_site': user.has_perm('dcim.add_site'),
+        }
 
     def _bundle_cards(self):
         from .bundles import BUNDLES
@@ -675,11 +711,10 @@ class SetupWizardView(LoginRequiredMixin, View):
 
     def get(self, request):
         from .forms import SetupWizardForm
-        if not self._check_permission(request):
-            return render(request, self.template_name, {'forbidden': True}, status=403)
         return render(request, self.template_name, {
             'form': SetupWizardForm(),
             'bundles': self._bundle_cards(),
+            'option_perms': self._option_permissions(request.user),
         })
 
     def post(self, request):
@@ -688,19 +723,42 @@ class SetupWizardView(LoginRequiredMixin, View):
         from .forms import SetupWizardForm
         from .seeding import apply_bundle
 
-        if not self._check_permission(request):
-            return render(request, self.template_name, {'forbidden': True}, status=403)
-
+        option_perms = self._option_permissions(request.user)
         form = SetupWizardForm(request.POST)
         if not form.is_valid():
             return render(request, self.template_name, {
                 'form': form,
                 'bundles': self._bundle_cards(),
+                'option_perms': option_perms,
             })
 
         bundle = BUNDLES[form.cleaned_data['bundle']]
         site_name = form.cleaned_data['site_name'].strip()
         site = Site.objects.filter(name__iexact=site_name).first()
+
+        # Server-side enforcement of per-option permissions
+        permission_errors = []
+        if form.cleaned_data['with_apps'] and not option_perms['with_apps']:
+            permission_errors.append(_('You do not have permission to create applications.'))
+        if form.cleaned_data['with_flows'] and not option_perms['with_flows']:
+            permission_errors.append(_('You do not have permission to create application flows.'))
+        if form.cleaned_data['with_infra'] and not option_perms['with_infra']:
+            permission_errors.append(_(
+                'You do not have permission to create the sample infrastructure '
+                '(virtual machines, VLANs, prefixes, IP addresses, tags).'
+            ))
+        if not site and not option_perms['create_site']:
+            permission_errors.append(_(
+                'This site does not exist and you do not have permission to create sites.'
+            ))
+        if permission_errors:
+            return render(request, self.template_name, {
+                'form': form,
+                'bundles': self._bundle_cards(),
+                'option_perms': option_perms,
+                'permission_errors': permission_errors,
+            }, status=403)
+
         site_created = False
         if not site:
             site = Site.objects.create(
@@ -720,6 +778,7 @@ class SetupWizardView(LoginRequiredMixin, View):
         return render(request, self.template_name, {
             'form': SetupWizardForm(),
             'bundles': self._bundle_cards(),
+            'option_perms': option_perms,
             'result': {
                 'site': site,
                 'site_created': site_created,
@@ -729,9 +788,10 @@ class SetupWizardView(LoginRequiredMixin, View):
         })
 
 
-class ComparisonLandscapeView(LoginRequiredMixin, View):
+class ComparisonLandscapeView(BaseLandscapeView):
     """Facility comparison: similarity matrix and mutualization opportunities."""
     template_name = 'netbox_it_landscape/landscape/comparison.html'
+    permission_required = 'netbox_it_landscape.view_application'
 
     def get(self, request):
         all_sites = list(

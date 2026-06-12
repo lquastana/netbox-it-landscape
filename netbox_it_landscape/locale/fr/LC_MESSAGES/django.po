@@ -538,8 +538,26 @@ msgstr "dont %(critical)s critiques"
 msgid "Bootstrap your cartography with a ready-to-use sector modeling bundle and sample data."
 msgstr "Démarrez votre cartographie avec un bundle de modélisation sectoriel prêt à l'emploi et des données d'exemple."
 
-msgid "You do not have permission to use the setup wizard."
-msgstr "Vous n'avez pas la permission d'utiliser l'assistant d'initialisation."
+msgid "Missing permissions"
+msgstr "Permissions manquantes"
+
+msgid "missing permission"
+msgstr "permission manquante"
+
+msgid "You do not have permission to create applications."
+msgstr "Vous n'avez pas la permission de créer des applications."
+
+msgid "You do not have permission to create application flows."
+msgstr "Vous n'avez pas la permission de créer des flux applicatifs."
+
+msgid "You do not have permission to create the sample infrastructure (virtual machines, VLANs, prefixes, IP addresses, tags)."
+msgstr "Vous n'avez pas la permission de créer l'infrastructure d'exemple (machines virtuelles, VLAN, préfixes, adresses IP, tags)."
+
+msgid "This site does not exist and you do not have permission to create sites."
+msgstr "Ce site n'existe pas et vous n'avez pas la permission de créer des sites."
+
+msgid "You can only target an existing site (no permission to create sites)."
+msgstr "Vous ne pouvez cibler qu'un site existant (pas de permission de création de sites)."
 
 msgid "Bundle applied successfully"
 msgstr "Bundle appliqué avec succès"

@@ -72,7 +72,7 @@ SIH_BUNDLE = {
         ]},
         {'name': 'Échange de données', 'description': 'Interopérabilité et messagerie sécurisée.', 'processes': [
             {'name': 'MSS', 'description': 'Messagerie de santé sécurisée.'},
-            {'name': 'EAI', 'description': "Moteur d'intégration.'"},
+            {'name': 'EAI', 'description': "Moteur d'intégration."},
         ]},
         {'name': 'Outils techniques', 'description': 'Supervision, ITSM et téléphonie.', 'processes': [
             {'name': 'Supervision SI', 'description': 'Monitoring et gestion de parc.'},

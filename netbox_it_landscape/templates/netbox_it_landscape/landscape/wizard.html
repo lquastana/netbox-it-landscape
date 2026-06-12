@@ -28,9 +28,14 @@
   <h1 class="mb-0">{% trans "Setup wizard" %}</h1>
   <div class="text-muted mb-3">{% trans "Bootstrap your cartography with a ready-to-use sector modeling bundle and sample data." %}</div>
 
-  {% if forbidden %}
-    <div class="alert alert-danger">{% trans "You do not have permission to use the setup wizard." %}</div>
-  {% else %}
+    {% if permission_errors %}
+      <div class="alert alert-danger">
+        <h4 class="alert-title">{% trans "Missing permissions" %}</h4>
+        <ul class="mb-0">
+          {% for error in permission_errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+      </div>
+    {% endif %}
 
     {% if result %}
       <div class="alert alert-success">
@@ -97,22 +102,30 @@
       <div class="itl-step">
         <div class="itl-step-title"><span class="badge text-bg-primary">3</span>{% trans "Sample data" %}</div>
         <label class="form-check">
-          <input type="checkbox" name="with_apps" class="form-check-input" checked>
-          <span class="form-check-label">{% trans "Load sample applications" %}</span>
+          <input type="checkbox" name="with_apps" class="form-check-input" {% if option_perms.with_apps %}checked{% else %}disabled{% endif %}>
+          <span class="form-check-label">{% trans "Load sample applications" %}
+            {% if not option_perms.with_apps %}<span class="text-muted">— {% trans "missing permission" %}</span>{% endif %}
+          </span>
         </label>
         <label class="form-check">
-          <input type="checkbox" name="with_infra" class="form-check-input" checked>
-          <span class="form-check-label">{% trans "Load sample infrastructure (VLANs, networks, virtual machines)" %}</span>
+          <input type="checkbox" name="with_infra" class="form-check-input" {% if option_perms.with_infra %}checked{% else %}disabled{% endif %}>
+          <span class="form-check-label">{% trans "Load sample infrastructure (VLANs, networks, virtual machines)" %}
+            {% if not option_perms.with_infra %}<span class="text-muted">— {% trans "missing permission" %}</span>{% endif %}
+          </span>
         </label>
         <label class="form-check">
-          <input type="checkbox" name="with_flows" class="form-check-input" checked>
-          <span class="form-check-label">{% trans "Load sample application flows" %}</span>
+          <input type="checkbox" name="with_flows" class="form-check-input" {% if option_perms.with_flows %}checked{% else %}disabled{% endif %}>
+          <span class="form-check-label">{% trans "Load sample application flows" %}
+            {% if not option_perms.with_flows %}<span class="text-muted">— {% trans "missing permission" %}</span>{% endif %}
+          </span>
         </label>
         <small class="text-muted">{% trans "Without sample data, only the domain / process structure is created." %}</small>
+        {% if not option_perms.create_site %}
+          <div class="text-warning" style="font-size: .8rem;">{% trans "You can only target an existing site (no permission to create sites)." %}</div>
+        {% endif %}
       </div>
 
       <button type="submit" class="btn btn-primary">{% trans "Apply bundle" %}</button>
     </form>
-  {% endif %}
 </div>
 {% endblock %}
