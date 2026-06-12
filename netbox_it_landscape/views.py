@@ -335,6 +335,187 @@ class ApplicativeLandscapeView(LoginRequiredMixin, View):
         })
 
 
+class KpiLandscapeView(LoginRequiredMixin, View):
+    """Synthèse KPI : compteurs, points d'attention, répartitions et hubs."""
+    template_name = 'netbox_it_landscape/landscape/kpi.html'
+
+    def get(self, request):
+        site_id = request.GET.get('site_id') or ''
+        sites_choices = Site.objects.filter(business_domains__isnull=False).distinct().order_by('name')
+
+        applications = Application.objects.prefetch_related(
+            'processes__domain__site', 'virtual_machines', 'devices',
+        )
+        flows = ApplicationFlow.objects.select_related('site', 'source', 'target')
+        domains = BusinessDomain.objects.all()
+        processes = BusinessProcess.objects.all()
+        if site_id:
+            applications = applications.filter(processes__domain__site_id=site_id).distinct()
+            flows = flows.filter(site_id=site_id)
+            domains = domains.filter(site_id=site_id)
+            processes = processes.filter(domain__site_id=site_id)
+
+        apps = list(applications)
+        flows = list(flows)
+        total_apps = len(apps)
+        total_flows = len(flows)
+
+        def pct(part, total):
+            return round(100 * part / total) if total else 0
+
+        # ── Compteurs clés ────────────────────────────────────────────────
+        critical_apps = [a for a in apps if a.criticality == CriticalityChoices.CRITICAL]
+        multi_apps = [a for a in apps if a.is_multi_site]
+        apps_with_servers = [
+            a for a in apps
+            if len(a.virtual_machines.all()) or len(a.devices.all())
+        ]
+        kpis = {
+            'apps': total_apps,
+            'critical': len(critical_apps),
+            'critical_pct': pct(len(critical_apps), total_apps),
+            'multi': len(multi_apps),
+            'multi_pct': pct(len(multi_apps), total_apps),
+            'flows': total_flows,
+            'server_coverage_pct': pct(len(apps_with_servers), total_apps),
+            'domains': domains.count(),
+            'processes': processes.count(),
+        }
+
+        # ── Points d'attention ────────────────────────────────────────────
+        no_server = [a for a in apps if not len(a.virtual_machines.all()) and not len(a.devices.all())]
+        attention = [
+            {
+                'label': 'Applications critiques sans serveur rattaché',
+                'detail': "Impossible de simuler l'impact d'un incident infrastructure",
+                'apps': [a for a in no_server if a.criticality == CriticalityChoices.CRITICAL],
+                'severity': 'red',
+            },
+            {
+                'label': 'Applications critiques sans supervision',
+                'detail': 'Aucune URL de supervision (PRTG, Centreon…) renseignée',
+                'apps': [a for a in critical_apps if not a.monitoring_url],
+                'severity': 'red',
+            },
+            {
+                'label': 'Applications sans rattachement métier',
+                'detail': 'Aucun processus associé — invisibles dans la vue métier',
+                'apps': [a for a in apps if not len(a.processes.all())],
+                'severity': 'orange',
+            },
+            {
+                'label': 'Applications sans référent',
+                'detail': 'Personne à contacter en cas d’incident',
+                'apps': [a for a in apps if not a.referent],
+                'severity': 'orange',
+            },
+            {
+                'label': 'Applications sans éditeur renseigné',
+                'detail': 'Qualité du référentiel à compléter',
+                'apps': [a for a in apps if not a.editor],
+                'severity': 'yellow',
+            },
+            {
+                'label': 'Flux sans protocole',
+                'detail': 'Documentation technique incomplète',
+                'apps': [],
+                'count_override': len([f for f in flows if not f.protocol]),
+                'severity': 'yellow',
+            },
+        ]
+        for item in attention:
+            item['count'] = item.get('count_override', len(item['apps']))
+            item['preview'] = [a.name for a in item['apps'][:5]]
+
+        # ── Répartition criticité (donut CSS) ─────────────────────────────
+        crit_pct = kpis['critical_pct']
+        criticality_donut = {
+            'critical': len(critical_apps),
+            'standard': total_apps - len(critical_apps),
+            'pct': crit_pct,
+            'gradient': f'#dc2626 0% {crit_pct}%, #64748b {crit_pct}% 100%',
+        }
+
+        # ── Flux par type d'interface ─────────────────────────────────────
+        interface_counts = OrderedDict()
+        for value, label, _color in InterfaceTypeChoices.CHOICES:
+            interface_counts[value] = {'label': label, 'count': 0, 'color': INTERFACE_HEX_COLORS[value]}
+        for flow in flows:
+            if flow.interface_type in interface_counts:
+                interface_counts[flow.interface_type]['count'] += 1
+        max_iface = max((i['count'] for i in interface_counts.values()), default=0)
+        flows_by_interface = [
+            {**item, 'pct': pct(item['count'], max_iface)}
+            for item in interface_counts.values() if item['count']
+        ]
+
+        # ── Dépendance EAI ────────────────────────────────────────────────
+        eai_counts = {}
+        for flow in flows:
+            key = flow.eai.strip() if flow.eai else 'Direct'
+            eai_counts[key] = eai_counts.get(key, 0) + 1
+        eai_flows = sum(c for name, c in eai_counts.items() if name.lower() != 'direct')
+        eai_list = sorted(eai_counts.items(), key=lambda kv: kv[1], reverse=True)
+        max_eai = eai_list[0][1] if eai_list else 0
+        eai_bars = [
+            {'name': name, 'count': count, 'pct': pct(count, max_eai),
+             'is_direct': name.lower() == 'direct'}
+            for name, count in eai_list[:6]
+        ]
+        eai_dependency_pct = pct(eai_flows, total_flows)
+
+        # ── Top éditeurs ──────────────────────────────────────────────────
+        editor_counts = {}
+        for app in apps:
+            if app.editor:
+                editor_counts[app.editor] = editor_counts.get(app.editor, 0) + 1
+        editor_list = sorted(editor_counts.items(), key=lambda kv: kv[1], reverse=True)[:6]
+        max_editor = editor_list[0][1] if editor_list else 0
+        editor_bars = [
+            {'name': name, 'count': count, 'pct': pct(count, max_editor)}
+            for name, count in editor_list
+        ]
+
+        # ── Top applications connectées (hubs de flux) ────────────────────
+        degree = {}
+        for flow in flows:
+            for app, direction in ((flow.source, 'out'), (flow.target, 'in')):
+                entry = degree.setdefault(app.pk, {'app': app, 'in': 0, 'out': 0})
+                entry[direction] += 1
+        hubs = sorted(degree.values(), key=lambda e: e['in'] + e['out'], reverse=True)[:8]
+        max_degree = (hubs[0]['in'] + hubs[0]['out']) if hubs else 0
+        for hub in hubs:
+            hub['total'] = hub['in'] + hub['out']
+            hub['pct'] = pct(hub['total'], max_degree)
+
+        # ── Applications par établissement ────────────────────────────────
+        site_counts = OrderedDict()
+        for app in apps:
+            for site in app.site_list:
+                entry = site_counts.setdefault(site.pk, {'site': site, 'count': 0, 'critical': 0})
+                entry['count'] += 1
+                if app.criticality == CriticalityChoices.CRITICAL:
+                    entry['critical'] += 1
+        site_bars = sorted(site_counts.values(), key=lambda e: e['count'], reverse=True)
+        max_site = site_bars[0]['count'] if site_bars else 0
+        for entry in site_bars:
+            entry['pct'] = pct(entry['count'], max_site)
+
+        return render(request, self.template_name, {
+            'kpis': kpis,
+            'attention': attention,
+            'criticality_donut': criticality_donut,
+            'flows_by_interface': flows_by_interface,
+            'eai_bars': eai_bars,
+            'eai_dependency_pct': eai_dependency_pct,
+            'editor_bars': editor_bars,
+            'hubs': hubs,
+            'site_bars': site_bars,
+            'sites_choices': sites_choices,
+            'filter_site_id': site_id,
+        })
+
+
 class FluxLandscapeView(LoginRequiredMixin, View):
     """Vue flux : table filtrable et diagramme source → cible."""
     template_name = 'netbox_it_landscape/landscape/flux.html'

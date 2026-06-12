@@ -15,7 +15,8 @@
       <td><a href="{% url 'plugins:netbox_it_landscape:applicationflow_list' %}?site_id={{ site.pk }}">{{ flow_count }}</a></td>
     </tr>
   </table>
-  <div class="card-footer d-flex gap-2">
+  <div class="card-footer d-flex gap-2 flex-wrap">
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'plugins:netbox_it_landscape:kpi_landscape' %}?site_id={{ site.pk }}">Synthèse</a>
     <a class="btn btn-sm btn-outline-primary" href="{% url 'plugins:netbox_it_landscape:business_landscape' %}?site_id={{ site.pk }}">Vue métier</a>
     <a class="btn btn-sm btn-outline-primary" href="{% url 'plugins:netbox_it_landscape:applicative_landscape' %}?site_id={{ site.pk }}">Vue applicative</a>
     <a class="btn btn-sm btn-outline-primary" href="{% url 'plugins:netbox_it_landscape:flux_landscape' %}?site_id={{ site.pk }}">Vue flux</a>

@@ -2,6 +2,11 @@ from netbox.plugins import PluginMenu, PluginMenuButton, PluginMenuItem
 
 cartography_items = (
     PluginMenuItem(
+        link='plugins:netbox_it_landscape:kpi_landscape',
+        link_text='Synthèse KPI',
+        permissions=['netbox_it_landscape.view_application'],
+    ),
+    PluginMenuItem(
         link='plugins:netbox_it_landscape:business_landscape',
         link_text='Vue métier',
         permissions=['netbox_it_landscape.view_application'],

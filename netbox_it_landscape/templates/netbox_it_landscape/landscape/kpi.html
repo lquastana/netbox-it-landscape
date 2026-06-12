@@ -1,0 +1,255 @@
+{% extends 'base/layout.html' %}
+
+{% block title %}Synthèse KPI{% endblock %}
+
+{% block content %}
+<style>
+  .itl-toolbar { display: flex; flex-wrap: wrap; gap: .75rem; align-items: end; margin-bottom: 1.25rem; }
+
+  /* Compteurs clés */
+  .itl-kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .7rem; margin-bottom: 1rem; }
+  .itl-kpi {
+    border: 1px solid var(--tblr-border-color); border-radius: .6rem;
+    background: var(--tblr-bg-surface); padding: .8rem .9rem;
+    border-top: 4px solid var(--tblr-primary, #1b75bc);
+  }
+  .itl-kpi.is-red { border-top-color: #dc2626; }
+  .itl-kpi.is-purple { border-top-color: #8b5cf6; }
+  .itl-kpi.is-green { border-top-color: #16a34a; }
+  .itl-kpi .itl-kpi-value { font-size: 1.7rem; font-weight: 700; color: var(--tblr-body-color); line-height: 1.1; }
+  .itl-kpi .itl-kpi-sub { font-size: .72rem; color: var(--tblr-secondary, var(--tblr-muted)); }
+  .itl-kpi .itl-kpi-label { font-size: .78rem; font-weight: 600; color: var(--tblr-body-color); margin-bottom: .15rem; }
+
+  /* Grille des panneaux */
+  .itl-panel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: .8rem; align-items: start; }
+  .itl-panel { border: 1px solid var(--tblr-border-color); border-radius: .6rem; background: var(--tblr-bg-surface); }
+  .itl-panel-header { padding: .6rem .85rem; border-bottom: 1px solid var(--tblr-border-color); display: flex; justify-content: space-between; align-items: center; }
+  .itl-panel-header h2 { margin: 0; font-size: .92rem; }
+  .itl-panel-body { padding: .7rem .85rem; }
+
+  /* Points d'attention */
+  .itl-attention-item { display: flex; justify-content: space-between; gap: .8rem; padding: .5rem 0; border-bottom: 1px dashed var(--tblr-border-color); }
+  .itl-attention-item:last-child { border-bottom: 0; }
+  .itl-attention-item .itl-att-label { font-size: .8rem; font-weight: 600; color: var(--tblr-body-color); }
+  .itl-attention-item .itl-att-detail { font-size: .7rem; color: var(--tblr-secondary, var(--tblr-muted)); }
+  .itl-attention-item .itl-att-preview { font-size: .68rem; color: var(--tblr-secondary, var(--tblr-muted)); font-style: italic; }
+
+  /* Donut criticité */
+  .itl-donut-wrap { display: flex; align-items: center; gap: 1.2rem; }
+  .itl-donut {
+    width: 130px; height: 130px; border-radius: 50%; flex-shrink: 0;
+    background: conic-gradient({{ criticality_donut.gradient }});
+    display: flex; align-items: center; justify-content: center;
+  }
+  .itl-donut-center {
+    width: 86px; height: 86px; border-radius: 50%;
+    background: var(--tblr-bg-surface);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .itl-donut-center strong { font-size: 1.25rem; color: var(--tblr-body-color); }
+  .itl-donut-center span { font-size: .62rem; color: var(--tblr-secondary, var(--tblr-muted)); }
+  .itl-donut-legend { font-size: .78rem; color: var(--tblr-body-color); }
+  .itl-donut-legend div { margin-bottom: .3rem; }
+  .itl-dot { display: inline-block; width: .7rem; height: .7rem; border-radius: 3px; margin-right: .4rem; vertical-align: -1px; }
+
+  /* Barres horizontales */
+  .itl-bar-row { display: grid; grid-template-columns: minmax(110px, 38%) 1fr auto; gap: .5rem; align-items: center; margin-bottom: .45rem; font-size: .78rem; }
+  .itl-bar-row .itl-bar-label { color: var(--tblr-body-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .itl-bar-row .itl-bar-label a { color: inherit; text-decoration: none; }
+  .itl-bar-row .itl-bar-label a:hover { color: var(--tblr-primary); }
+  .itl-bar-track { background: color-mix(in srgb, var(--tblr-border-color) 50%, transparent); border-radius: 99px; height: .65rem; overflow: hidden; }
+  .itl-bar-fill { height: 100%; border-radius: 99px; background: var(--tblr-primary, #1b75bc); min-width: 2px; }
+  .itl-bar-count { font-size: .74rem; color: var(--tblr-secondary, var(--tblr-muted)); white-space: nowrap; }
+
+  .itl-eai-gauge { margin-bottom: .8rem; }
+  .itl-eai-gauge .itl-bar-track { height: .9rem; }
+
+  @media print {
+    .itl-toolbar form, #navbar, .navbar, footer { display: none !important; }
+    .itl-panel, .itl-kpi { break-inside: avoid; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+
+<div class="itl-toolbar">
+  <div class="me-auto">
+    <h1 class="mb-0">Synthèse KPI</h1>
+    <div class="text-muted">Indicateurs de pilotage de la cartographie applicative</div>
+  </div>
+  <form method="get" class="d-flex flex-wrap gap-2 align-items-end">
+    <div>
+      <label class="form-label mb-1">Établissement</label>
+      <select name="site_id" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">Tous</option>
+        {% for site in sites_choices %}
+          <option value="{{ site.pk }}" {% if filter_site_id == site.pk|stringformat:'s' %}selected{% endif %}>{{ site.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </form>
+</div>
+
+{# ── Compteurs clés ─────────────────────────────────────────────────── #}
+<div class="itl-kpi-row">
+  <div class="itl-kpi">
+    <div class="itl-kpi-label">Applications</div>
+    <div class="itl-kpi-value">{{ kpis.apps }}</div>
+    <div class="itl-kpi-sub">{{ kpis.domains }} domaines · {{ kpis.processes }} processus</div>
+  </div>
+  <div class="itl-kpi is-red">
+    <div class="itl-kpi-label">Critiques</div>
+    <div class="itl-kpi-value">{{ kpis.critical }}</div>
+    <div class="itl-kpi-sub">{{ kpis.critical_pct }}% du parc applicatif</div>
+  </div>
+  <div class="itl-kpi is-purple">
+    <div class="itl-kpi-label">Multi-site</div>
+    <div class="itl-kpi-value">{{ kpis.multi }}</div>
+    <div class="itl-kpi-sub">{{ kpis.multi_pct }}% des applications</div>
+  </div>
+  <div class="itl-kpi">
+    <div class="itl-kpi-label">Flux applicatifs</div>
+    <div class="itl-kpi-value">{{ kpis.flows }}</div>
+    <div class="itl-kpi-sub">{{ eai_dependency_pct }}% via un EAI</div>
+  </div>
+  <div class="itl-kpi is-green">
+    <div class="itl-kpi-label">Couverture serveurs</div>
+    <div class="itl-kpi-value">{{ kpis.server_coverage_pct }}%</div>
+    <div class="itl-kpi-sub">applications avec au moins un serveur rattaché</div>
+  </div>
+</div>
+
+<div class="itl-panel-grid">
+
+  {# ── Points d'attention ──────────────────────────────────────────── #}
+  <div class="itl-panel" style="grid-column: span 1;">
+    <div class="itl-panel-header">
+      <h2>Points d'attention</h2>
+    </div>
+    <div class="itl-panel-body">
+      {% for item in attention %}
+        <div class="itl-attention-item">
+          <div>
+            <div class="itl-att-label">{{ item.label }}</div>
+            <div class="itl-att-detail">{{ item.detail }}</div>
+            {% if item.count and item.preview %}
+              <div class="itl-att-preview">{{ item.preview|join:', ' }}{% if item.count > 5 %}…{% endif %}</div>
+            {% endif %}
+          </div>
+          <div>
+            {% if item.count %}
+              <span class="badge text-bg-{{ item.severity }}">{{ item.count }}</span>
+            {% else %}
+              <span class="badge text-bg-green">0</span>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {# ── Criticité ───────────────────────────────────────────────────── #}
+  <div class="itl-panel">
+    <div class="itl-panel-header"><h2>Répartition par criticité</h2></div>
+    <div class="itl-panel-body">
+      <div class="itl-donut-wrap">
+        <div class="itl-donut">
+          <div class="itl-donut-center">
+            <strong>{{ criticality_donut.pct }}%</strong>
+            <span>critiques</span>
+          </div>
+        </div>
+        <div class="itl-donut-legend">
+          <div><span class="itl-dot" style="background:#dc2626;"></span>Critique — {{ criticality_donut.critical }}</div>
+          <div><span class="itl-dot" style="background:#64748b;"></span>Standard — {{ criticality_donut.standard }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Flux par interface ──────────────────────────────────────────── #}
+  <div class="itl-panel">
+    <div class="itl-panel-header"><h2>Flux par type d'interface</h2></div>
+    <div class="itl-panel-body">
+      {% for item in flows_by_interface %}
+        <div class="itl-bar-row">
+          <span class="itl-bar-label">{{ item.label }}</span>
+          <div class="itl-bar-track"><div class="itl-bar-fill" style="width: {{ item.pct }}%; background: {{ item.color }};"></div></div>
+          <span class="itl-bar-count">{{ item.count }}</span>
+        </div>
+      {% empty %}
+        <span class="text-muted">Aucun flux</span>
+      {% endfor %}
+    </div>
+  </div>
+
+  {# ── Dépendance EAI ──────────────────────────────────────────────── #}
+  <div class="itl-panel">
+    <div class="itl-panel-header">
+      <h2>Dépendance aux EAI</h2>
+      <span class="badge {% if eai_dependency_pct > 60 %}text-bg-orange{% else %}text-bg-blue{% endif %}">{{ eai_dependency_pct }}% des flux</span>
+    </div>
+    <div class="itl-panel-body">
+      <div class="itl-att-detail mb-2">Part des flux transitant par un moteur d'intégration — un EAI indisponible interrompt tous ses flux.</div>
+      {% for item in eai_bars %}
+        <div class="itl-bar-row">
+          <span class="itl-bar-label">{{ item.name }}</span>
+          <div class="itl-bar-track"><div class="itl-bar-fill" style="width: {{ item.pct }}%;{% if item.is_direct %} background: #64748b;{% endif %}"></div></div>
+          <span class="itl-bar-count">{{ item.count }}</span>
+        </div>
+      {% empty %}
+        <span class="text-muted">Aucun flux</span>
+      {% endfor %}
+    </div>
+  </div>
+
+  {# ── Hubs applicatifs ────────────────────────────────────────────── #}
+  <div class="itl-panel">
+    <div class="itl-panel-header"><h2>Applications les plus connectées</h2></div>
+    <div class="itl-panel-body">
+      <div class="itl-att-detail mb-2">Impact potentiel maximal en cas d'incident (flux entrants + sortants).</div>
+      {% for hub in hubs %}
+        <div class="itl-bar-row">
+          <span class="itl-bar-label"><a href="{{ hub.app.get_absolute_url }}">{{ hub.app.name }}</a></span>
+          <div class="itl-bar-track"><div class="itl-bar-fill" style="width: {{ hub.pct }}%;{% if hub.app.criticality == 'critical' %} background: #dc2626;{% endif %}"></div></div>
+          <span class="itl-bar-count">{{ hub.total }} <span style="opacity:.6;">({{ hub.in }}↓ {{ hub.out }}↑)</span></span>
+        </div>
+      {% empty %}
+        <span class="text-muted">Aucun flux</span>
+      {% endfor %}
+    </div>
+  </div>
+
+  {# ── Top éditeurs ────────────────────────────────────────────────── #}
+  <div class="itl-panel">
+    <div class="itl-panel-header"><h2>Top éditeurs</h2></div>
+    <div class="itl-panel-body">
+      {% for item in editor_bars %}
+        <div class="itl-bar-row">
+          <span class="itl-bar-label">{{ item.name }}</span>
+          <div class="itl-bar-track"><div class="itl-bar-fill" style="width: {{ item.pct }}%;"></div></div>
+          <span class="itl-bar-count">{{ item.count }}</span>
+        </div>
+      {% empty %}
+        <span class="text-muted">Aucun éditeur renseigné</span>
+      {% endfor %}
+    </div>
+  </div>
+
+  {# ── Applications par établissement ──────────────────────────────── #}
+  {% if not filter_site_id and site_bars %}
+    <div class="itl-panel">
+      <div class="itl-panel-header"><h2>Applications par établissement</h2></div>
+      <div class="itl-panel-body">
+        {% for entry in site_bars %}
+          <div class="itl-bar-row">
+            <span class="itl-bar-label"><a href="{{ entry.site.get_absolute_url }}">{{ entry.site.name }}</a></span>
+            <div class="itl-bar-track"><div class="itl-bar-fill" style="width: {{ entry.pct }}%;"></div></div>
+            <span class="itl-bar-count">{{ entry.count }} <span style="opacity:.6;">dont {{ entry.critical }} crit.</span></span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}
