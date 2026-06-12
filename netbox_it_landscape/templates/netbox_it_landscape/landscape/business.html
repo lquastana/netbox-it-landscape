@@ -4,29 +4,84 @@
 
 {% block content %}
 <style>
-  .itl-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: end; margin-bottom: 1rem; }
+  .itl-toolbar { display: flex; flex-wrap: wrap; gap: .75rem; align-items: end; margin-bottom: 1.25rem; }
+
   .itl-etab { margin-bottom: 1.5rem; }
-  .itl-etab-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .5rem; }
-  .itl-etab-stats { display: flex; gap: .5rem; }
-  .itl-domain { border-radius: .5rem; padding: .75rem 1rem; margin-bottom: .75rem; border: 1px solid rgba(0,0,0,.07); }
-  .itl-domain summary { cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 1rem; list-style: none; }
-  .itl-domain summary::-webkit-details-marker { display: none; }
-  .itl-domain-title strong { font-size: 1rem; }
-  .itl-domain-title em { display: block; font-style: normal; opacity: .7; font-size: .8rem; }
-  .itl-process { background: rgba(255,255,255,.55); border: 1px solid rgba(0,0,0,.06); border-radius: .4rem; padding: .6rem .8rem; margin-top: .6rem; }
-  [data-bs-theme="dark"] .itl-process { background: rgba(0,0,0,.25); }
-  .itl-process summary { cursor: pointer; display: flex; justify-content: space-between; gap: 1rem; list-style: none; }
-  .itl-process summary::-webkit-details-marker { display: none; }
-  .itl-app-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: .6rem; margin-top: .6rem; }
-  .itl-app-card { border: 1px solid rgba(0,0,0,.1); border-left: 4px solid #94a3b8; border-radius: .4rem; padding: .55rem .7rem; background: var(--tblr-bg-surface, #fff); }
+  .itl-etab-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+  .itl-etab-header h2 a { color: var(--tblr-body-color); text-decoration: none; }
+  .itl-etab-header h2 a:hover { color: var(--tblr-primary); }
+  .itl-etab-stats { display: flex; gap: .4rem; }
+
+  /* Domaine : teinte dérivée de la couleur du domaine, lisible clair & sombre */
+  .itl-domain {
+    border-radius: .6rem;
+    padding: .8rem 1rem;
+    margin-bottom: .8rem;
+    background: color-mix(in srgb, var(--domain-color) 16%, var(--tblr-bg-surface));
+    border: 1px solid color-mix(in srgb, var(--domain-color) 35%, var(--tblr-border-color));
+    border-left: 5px solid color-mix(in srgb, var(--domain-color) 55%, var(--tblr-primary, #1b75bc));
+  }
+  .itl-domain > summary {
+    cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+    gap: 1rem; list-style: none; user-select: none;
+  }
+  .itl-domain > summary::-webkit-details-marker { display: none; }
+  .itl-domain > summary::after {
+    content: '▾'; font-size: .9rem; opacity: .5; transition: transform .15s ease;
+  }
+  .itl-domain:not([open]) > summary::after { transform: rotate(-90deg); }
+  .itl-domain-title strong { font-size: 1.02rem; color: var(--tblr-body-color); }
+  .itl-domain-title strong a { color: inherit; text-decoration: none; }
+  .itl-domain-title strong a:hover { color: var(--tblr-primary); }
+  .itl-domain-title em { display: block; font-style: normal; color: var(--tblr-secondary, var(--tblr-muted)); font-size: .8rem; margin-top: .1rem; }
+
+  /* Processus */
+  .itl-process {
+    background: var(--tblr-bg-surface);
+    border: 1px solid var(--tblr-border-color);
+    border-radius: .5rem;
+    padding: .65rem .85rem;
+    margin-top: .65rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,.05);
+  }
+  .itl-process > summary {
+    cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+    gap: 1rem; list-style: none; user-select: none;
+  }
+  .itl-process > summary::-webkit-details-marker { display: none; }
+  .itl-process > summary::after {
+    content: '▾'; font-size: .85rem; opacity: .4; transition: transform .15s ease;
+  }
+  .itl-process:not([open]) > summary::after { transform: rotate(-90deg); }
+  .itl-process-title strong { color: var(--tblr-body-color); }
+  .itl-process-title strong a { color: inherit; text-decoration: none; }
+  .itl-process-title strong a:hover { color: var(--tblr-primary); }
+  .itl-process-title .itl-desc { color: var(--tblr-secondary, var(--tblr-muted)); font-size: .82rem; margin-left: .5rem; }
+
+  /* Cartes applications */
+  .itl-app-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: .65rem; margin-top: .65rem; }
+  .itl-app-card {
+    border: 1px solid var(--tblr-border-color);
+    border-left: 4px solid #94a3b8;
+    border-radius: .5rem;
+    padding: .6rem .75rem;
+    background: var(--tblr-bg-surface);
+    transition: box-shadow .12s ease, transform .12s ease;
+  }
+  .itl-app-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.12); transform: translateY(-1px); }
   .itl-app-card.is-critical { border-left-color: #dc2626; }
-  .itl-app-topline { display: flex; justify-content: space-between; align-items: center; margin-bottom: .25rem; }
-  .itl-app-card h5 { margin: 0 0 .2rem; font-size: .9rem; }
-  .itl-app-card h5 a { text-decoration: none; }
-  .itl-app-card p { margin: 0 0 .35rem; font-size: .76rem; opacity: .75; }
-  .itl-app-meta { font-size: .72rem; opacity: .65; margin-bottom: .35rem; display: flex; gap: .6rem; flex-wrap: wrap; }
-  .itl-chips { display: flex; flex-wrap: wrap; gap: .25rem; }
-  .itl-chip { font-size: .68rem; padding: .1rem .45rem; border-radius: 999px; border: 1px solid; }
+  .itl-app-topline { display: flex; justify-content: space-between; align-items: center; margin-bottom: .3rem; }
+  .itl-app-card h5 { margin: 0 0 .25rem; font-size: .92rem; }
+  .itl-app-card h5 a { color: var(--tblr-body-color); text-decoration: none; }
+  .itl-app-card h5 a:hover { color: var(--tblr-primary); }
+  .itl-app-card p { margin: 0 0 .4rem; font-size: .78rem; color: var(--tblr-secondary, var(--tblr-muted)); line-height: 1.35; }
+  .itl-app-meta { font-size: .72rem; color: var(--tblr-secondary, var(--tblr-muted)); margin-bottom: .4rem; display: flex; gap: .6rem; flex-wrap: wrap; }
+  .itl-chips { display: flex; flex-wrap: wrap; gap: .3rem; }
+  .itl-chip {
+    font-size: .68rem; font-weight: 500; padding: .12rem .5rem; border-radius: 999px;
+    border: 1px solid; color: var(--tblr-body-color);
+  }
+  .itl-empty-chip { font-size: .7rem; color: var(--tblr-secondary, var(--tblr-muted)); }
 </style>
 
 <div class="itl-toolbar">
@@ -58,6 +113,9 @@
       <input type="text" name="q" value="{{ filter_q }}" class="form-control form-control-sm" placeholder="Nom, trigramme, éditeur…">
     </div>
     <button type="submit" class="btn btn-sm btn-primary">Filtrer</button>
+    {% if filter_q or filter_site_id or filter_criticality %}
+      <a href="{% url 'plugins:netbox_it_landscape:business_landscape' %}" class="btn btn-sm btn-outline-secondary">Réinitialiser</a>
+    {% endif %}
   </form>
 </div>
 
@@ -73,7 +131,7 @@
 {% for entry in sites %}
   <section class="card itl-etab">
     <div class="card-body">
-      <div class="itl-etab-header mb-2">
+      <div class="itl-etab-header">
         <h2 class="mb-0"><a href="{{ entry.site.get_absolute_url }}">{{ entry.site.name }}</a></h2>
         <div class="itl-etab-stats">
           <span class="badge text-bg-secondary">{{ entry.domains|length }} domaine{{ entry.domains|length|pluralize }}</span>
@@ -85,29 +143,29 @@
       </div>
 
       {% for dom in entry.domains %}
-        <details class="itl-domain" open style="background-color: #{{ dom.domain.color }};">
+        <details class="itl-domain" open style="--domain-color: #{{ dom.domain.color }};">
           <summary>
             <span class="itl-domain-title">
-              <strong><a href="{{ dom.domain.get_absolute_url }}" style="color: inherit;">{{ dom.domain.name }}</a></strong>
+              <strong><a href="{{ dom.domain.get_absolute_url }}">{{ dom.domain.name }}</a></strong>
               {% if dom.domain.description %}<em>{{ dom.domain.description }}</em>{% endif %}
             </span>
-            <span class="d-flex gap-2">
+            <span class="d-flex gap-2 align-items-center">
               <span class="badge text-bg-secondary">{{ dom.processes|length }} processus</span>
-              <span class="badge text-bg-blue">{{ dom.app_count }} apps</span>
-              {% if dom.critical_count %}<span class="badge text-bg-red">{{ dom.critical_count }} critiques</span>{% endif %}
+              <span class="badge text-bg-blue">{{ dom.app_count }} app{{ dom.app_count|pluralize }}</span>
+              {% if dom.critical_count %}<span class="badge text-bg-red">{{ dom.critical_count }} critique{{ dom.critical_count|pluralize }}</span>{% endif %}
             </span>
           </summary>
 
           {% for proc in dom.processes %}
             <details class="itl-process" open>
               <summary>
-                <span>
-                  <strong><a href="{{ proc.process.get_absolute_url }}" style="color: inherit;">{{ proc.process.name }}</a></strong>
-                  {% if proc.process.description %}<span class="text-muted ms-2">{{ proc.process.description }}</span>{% endif %}
+                <span class="itl-process-title">
+                  <strong><a href="{{ proc.process.get_absolute_url }}">{{ proc.process.name }}</a></strong>
+                  {% if proc.process.description %}<span class="itl-desc">{{ proc.process.description }}</span>{% endif %}
                 </span>
-                <span class="d-flex gap-2">
-                  <span class="badge text-bg-secondary">{{ proc.applications|length }} apps</span>
-                  {% if proc.critical_count %}<span class="badge text-bg-red">{{ proc.critical_count }} critiques</span>{% endif %}
+                <span class="d-flex gap-2 align-items-center">
+                  <span class="badge text-bg-secondary">{{ proc.applications|length }} app{{ proc.applications|length|pluralize }}</span>
+                  {% if proc.critical_count %}<span class="badge text-bg-red">{{ proc.critical_count }} critique{{ proc.critical_count|pluralize }}</span>{% endif %}
                 </span>
               </summary>
               <div class="itl-app-grid">
@@ -127,7 +185,7 @@
                       {% for chip in app.chips %}
                         <span class="itl-chip" style="border-color: {{ chip.color }}; background: {{ chip.bg }};">{{ chip.label }}</span>
                       {% empty %}
-                        <span class="text-muted" style="font-size: .7rem;">Aucune interface active</span>
+                        <span class="itl-empty-chip">Aucune interface active</span>
                       {% endfor %}
                     </div>
                   </article>

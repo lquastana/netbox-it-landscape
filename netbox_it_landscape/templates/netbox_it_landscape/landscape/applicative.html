@@ -6,14 +6,17 @@
 <style>
   .itl-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: end; margin-bottom: 1rem; }
   .itl-group-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: .8rem; }
-  .itl-group { border: 1px solid rgba(0,0,0,.1); border-left: 4px solid #64748b; border-radius: .5rem; background: var(--tblr-bg-surface, #fff); }
+  .itl-group { border: 1px solid var(--tblr-border-color); border-left: 4px solid #64748b; border-radius: .5rem; background: var(--tblr-bg-surface); transition: box-shadow .12s ease; }
+  .itl-group:hover { box-shadow: 0 4px 12px rgba(0,0,0,.12); }
   .itl-group.is-critical { border-left-color: #dc2626; }
-  .itl-group-header { display: flex; justify-content: space-between; align-items: center; padding: .6rem .8rem; border-bottom: 1px solid rgba(0,0,0,.06); }
+  .itl-group-header { display: flex; justify-content: space-between; align-items: center; padding: .6rem .8rem; border-bottom: 1px solid var(--tblr-border-color); }
   .itl-group-header h3 { margin: 0; font-size: .95rem; }
+  .itl-group-header h3 a { color: var(--tblr-body-color); text-decoration: none; }
+  .itl-group-header h3 a:hover { color: var(--tblr-primary); }
   .itl-group-body { padding: .6rem .8rem; }
   .itl-server-table { font-size: .78rem; margin: 0; }
-  .itl-server-table th { font-weight: 600; opacity: .65; }
-  .itl-sites { font-size: .72rem; opacity: .65; }
+  .itl-server-table th { font-weight: 600; color: var(--tblr-secondary, var(--tblr-muted)); }
+  .itl-sites { font-size: .72rem; color: var(--tblr-secondary, var(--tblr-muted)); }
 </style>
 
 <div class="itl-toolbar">
