@@ -205,6 +205,7 @@ class BusinessLandscapeView(LoginRequiredMixin, View):
 
     def get(self, request):
         site_id, q, criticality, sites_choices = _landscape_filters(request)
+        view_mode = 'paysage' if request.GET.get('view') == 'paysage' else 'detail'
 
         applications = Application.objects.select_related('process__domain__site')
         if site_id:
@@ -270,6 +271,7 @@ class BusinessLandscapeView(LoginRequiredMixin, View):
             'filter_site_id': site_id,
             'filter_q': q,
             'filter_criticality': criticality,
+            'view_mode': view_mode,
         })
 
 
