@@ -178,8 +178,9 @@ class Command(BaseCommand):
                     self.stats['processes'] += 1
                 for app_data in proc.get('applications', []):
                     app = self._import_application(process, app_data)
-                    if app and app.trigramme:
-                        app_index.setdefault(app.trigramme, app)
+                    tri = (app_data.get('trigramme') or '').strip().upper()
+                    if app and tri:
+                        app_index.setdefault(tri, app)
 
         # Rattachement des serveurs (VM NetBox) par trigramme
         if infra:
@@ -190,13 +191,17 @@ class Command(BaseCommand):
             self._import_flux(site, flux, app_index)
 
     def _import_application(self, process, data):
+        """
+        Crée ou retrouve l'application par son nom (référentiel unique) et
+        la rattache au processus. Une application présente dans plusieurs
+        établissements devient ainsi naturellement multi-site.
+        """
         name = (data.get('nom') or '').strip()
         if not name:
             return None
 
         interfaces = data.get('interfaces') or {}
         defaults = {
-            'trigramme': (data.get('trigramme') or '').strip().upper()[:10],
             'description': (data.get('description') or '')[:500],
             'editor': (data.get('editeur') or '')[:100],
             'referent': (data.get('referent') or '')[:100],
@@ -206,17 +211,15 @@ class Command(BaseCommand):
                 if (data.get('criticite') or '').lower() == 'critique'
                 else CriticalityChoices.STANDARD
             ),
-            'multi_site': bool(data.get('multiEtablissement')),
             'monitoring_url': (data.get('lienPRTG') or '')[:200],
         }
         for key, field in INTERFACE_FIELD_MAP.items():
             defaults[field] = bool(interfaces.get(key))
 
-        app, created = Application.objects.update_or_create(
-            process=process, name=name, defaults=defaults,
-        )
+        app, created = Application.objects.get_or_create(name=name, defaults=defaults)
         if created:
             self.stats['applications'] += 1
+        app.processes.add(process)
         return app
 
     def _seed_vms(self, site, infra):
@@ -348,13 +351,11 @@ class Command(BaseCommand):
             domain=domain, name=FALLBACK_PROCESS,
         )
         name = self.trigramme_names.get(trigramme, trigramme)
-        app, created = Application.objects.get_or_create(
-            process=process, name=name,
-            defaults={'trigramme': trigramme},
-        )
+        app, created = Application.objects.get_or_create(name=name)
         if created:
             self.stats['applications'] += 1
-            self.stdout.write(f'  Application hors référentiel créée : {name} ({trigramme})')
+            self.stdout.write(f'  Application hors référentiel créée : {name}')
+        app.processes.add(process)
         return app
 
     def _import_flux(self, site, flux_data, app_index):
@@ -379,6 +380,7 @@ class Command(BaseCommand):
                 InterfaceTypeChoices.AUTRE,
             )
             defaults = {
+                'site': site,
                 'source': source,
                 'target': target,
                 'protocol': (flow.get('protocol') or '')[:50],
@@ -396,7 +398,7 @@ class Command(BaseCommand):
                 )
             else:
                 _, created = ApplicationFlow.objects.get_or_create(
-                    source=source, target=target,
+                    site=site, source=source, target=target,
                     protocol=defaults['protocol'],
                     message_type=defaults['message_type'],
                     defaults=defaults,

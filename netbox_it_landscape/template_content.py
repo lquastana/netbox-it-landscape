@@ -13,7 +13,7 @@ class ServerApplicationsPanel(PluginTemplateExtension):
             applications = Application.objects.filter(virtual_machines=obj)
         else:
             applications = Application.objects.filter(devices=obj)
-        applications = applications.select_related('process__domain__site')
+        applications = applications.prefetch_related('processes__domain__site')
         return self.render('netbox_it_landscape/inc/applications_panel.html', extra_context={
             'applications': applications,
         })
@@ -26,8 +26,8 @@ class SiteLandscapePanel(PluginTemplateExtension):
     def right_page(self):
         site = self.context['object']
         domain_count = BusinessDomain.objects.filter(site=site).count()
-        application_count = Application.objects.filter(process__domain__site=site).count()
-        flow_count = ApplicationFlow.objects.filter(source__process__domain__site=site).count()
+        application_count = Application.objects.filter(processes__domain__site=site).distinct().count()
+        flow_count = ApplicationFlow.objects.filter(site=site).count()
         if not (domain_count or application_count or flow_count):
             return ''
         return self.render('netbox_it_landscape/inc/site_panel.html', extra_context={

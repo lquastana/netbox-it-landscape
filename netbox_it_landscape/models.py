@@ -76,20 +76,18 @@ class BusinessProcess(NetBoxModel):
 
 class Application(NetBoxModel):
     """
-    Application du SI rattachée à un processus métier, identifiée par son
-    trigramme et reliée aux serveurs (VM / devices) qui l'hébergent.
+    Application du SI. Une application est unique dans le référentiel et
+    peut être rattachée à plusieurs processus métier — donc à plusieurs
+    établissements : la notion de multi-site est dérivée de ces
+    rattachements. Les serveurs (VM / devices) y sont reliés directement.
     """
-    process = models.ForeignKey(
+    processes = models.ManyToManyField(
         to=BusinessProcess,
-        on_delete=models.CASCADE,
         related_name='applications',
+        blank=True,
         verbose_name='Processus',
     )
-    name = models.CharField('Nom', max_length=200)
-    trigramme = models.CharField(
-        'Trigramme', max_length=10, blank=True, db_index=True,
-        help_text="Code court de l'application (ex. GAP, ORB)",
-    )
+    name = models.CharField('Nom', max_length=200, unique=True)
     description = models.CharField('Description', max_length=500, blank=True)
     editor = models.CharField('Éditeur', max_length=100, blank=True)
     referent = models.CharField('Référent', max_length=100, blank=True)
@@ -102,7 +100,6 @@ class Application(NetBoxModel):
         choices=CriticalityChoices,
         default=CriticalityChoices.STANDARD,
     )
-    multi_site = models.BooleanField('Multi-établissement', default=False)
     monitoring_url = models.URLField(
         'URL de supervision', blank=True,
         help_text='Lien vers la supervision (PRTG, Centreon, …)',
@@ -129,23 +126,15 @@ class Application(NetBoxModel):
         verbose_name='Équipements',
     )
 
-    clone_fields = (
-        'process', 'editor', 'hosting', 'criticality', 'multi_site',
-    )
+    clone_fields = ('editor', 'hosting', 'criticality')
 
     class Meta:
         ordering = ('name',)
-        constraints = (
-            models.UniqueConstraint(
-                fields=('process', 'name'),
-                name='%(app_label)s_%(class)s_unique_process_name',
-            ),
-        )
         verbose_name = 'application'
         verbose_name_plural = 'applications'
 
     def __str__(self):
-        return f'{self.name} ({self.trigramme})' if self.trigramme else self.name
+        return self.name
 
     def get_absolute_url(self):
         return reverse('plugins:netbox_it_landscape:application', args=[self.pk])
@@ -154,12 +143,19 @@ class Application(NetBoxModel):
         return CriticalityChoices.colors.get(self.criticality)
 
     @property
-    def site(self):
-        return self.process.domain.site
+    def site_list(self):
+        """Établissements distincts où l'application est déployée (via ses processus)."""
+        sites = []
+        for process in self.processes.all():
+            site = process.domain.site
+            if site not in sites:
+                sites.append(site)
+        return sites
 
     @property
-    def domain(self):
-        return self.process.domain
+    def is_multi_site(self):
+        """Multi-établissement : dérivé des rattachements aux processus."""
+        return len(self.site_list) > 1
 
     @property
     def active_interfaces(self):
@@ -185,6 +181,15 @@ class ApplicationFlow(NetBoxModel):
     flow_id = models.CharField(
         'Identifiant', max_length=50, blank=True,
         help_text='Identifiant fonctionnel du flux (ex. VDL-FLX-001)',
+    )
+    site = models.ForeignKey(
+        to='dcim.Site',
+        on_delete=models.SET_NULL,
+        related_name='application_flows',
+        null=True,
+        blank=True,
+        verbose_name='Établissement',
+        help_text="Établissement dans lequel ce flux est en place",
     )
     source = models.ForeignKey(
         to=Application,
@@ -212,7 +217,7 @@ class ApplicationFlow(NetBoxModel):
     )
     description = models.CharField('Description', max_length=200, blank=True)
 
-    clone_fields = ('source', 'target', 'protocol', 'interface_type', 'eai')
+    clone_fields = ('site', 'source', 'target', 'protocol', 'interface_type', 'eai')
 
     class Meta:
         ordering = ('flow_id', 'source', 'target')
@@ -230,7 +235,3 @@ class ApplicationFlow(NetBoxModel):
 
     def get_interface_type_color(self):
         return InterfaceTypeChoices.colors.get(self.interface_type)
-
-    @property
-    def site(self):
-        return self.source.process.domain.site

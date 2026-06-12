@@ -3,13 +3,13 @@
   {% if applications %}
     <table class="table table-hover">
       <thead>
-        <tr><th>Application</th><th>Trigramme</th><th>Criticité</th></tr>
+        <tr><th>Application</th><th>Établissements</th><th>Criticité</th></tr>
       </thead>
       <tbody>
         {% for app in applications %}
           <tr>
             <td><a href="{{ app.get_absolute_url }}">{{ app.name }}</a></td>
-            <td>{% if app.trigramme %}<span class="badge text-bg-secondary">{{ app.trigramme }}</span>{% else %}—{% endif %}</td>
+            <td>{% for site in app.site_list %}{{ site }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</td>
             <td><span class="badge text-bg-{{ app.get_criticality_color }}">{{ app.get_criticality_display }}</span></td>
           </tr>
         {% endfor %}

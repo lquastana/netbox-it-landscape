@@ -48,33 +48,31 @@ class BusinessProcessFilterSet(NetBoxModelFilterSet):
 
 class ApplicationFilterSet(NetBoxModelFilterSet):
     process_id = django_filters.ModelMultipleChoiceFilter(
-        field_name='process',
+        field_name='processes',
         queryset=BusinessProcess.objects.all(),
         label='Processus (ID)',
     )
     domain_id = django_filters.ModelMultipleChoiceFilter(
-        field_name='process__domain',
+        field_name='processes__domain',
         queryset=BusinessDomain.objects.all(),
         label='Domaine (ID)',
     )
     site_id = django_filters.ModelMultipleChoiceFilter(
-        field_name='process__domain__site',
+        field_name='processes__domain__site',
         queryset=Site.objects.all(),
         label='Établissement (ID)',
     )
     criticality = django_filters.MultipleChoiceFilter(
         choices=CriticalityChoices,
     )
-    trigramme = django_filters.CharFilter(lookup_expr='iexact')
 
     class Meta:
         model = Application
-        fields = ('id', 'name', 'editor', 'hosting', 'multi_site')
+        fields = ('id', 'name', 'editor', 'hosting')
 
     def search(self, queryset, name, value):
         return queryset.filter(
             Q(name__icontains=value)
-            | Q(trigramme__icontains=value)
             | Q(description__icontains=value)
             | Q(editor__icontains=value)
         )
@@ -92,7 +90,7 @@ class ApplicationFlowFilterSet(NetBoxModelFilterSet):
         label='Application cible (ID)',
     )
     site_id = django_filters.ModelMultipleChoiceFilter(
-        field_name='source__process__domain__site',
+        field_name='site',
         queryset=Site.objects.all(),
         label='Établissement (ID)',
     )
@@ -112,7 +110,5 @@ class ApplicationFlowFilterSet(NetBoxModelFilterSet):
             | Q(eai__icontains=value)
             | Q(description__icontains=value)
             | Q(source__name__icontains=value)
-            | Q(source__trigramme__icontains=value)
             | Q(target__name__icontains=value)
-            | Q(target__trigramme__icontains=value)
         )

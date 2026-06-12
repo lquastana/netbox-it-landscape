@@ -14,8 +14,10 @@ tags `app:XXX`). Ce plugin déplace la cartographie *dans* NetBox :
 | Établissement | **Site NetBox** (natif) |
 | Domaine métier | Modèle `BusinessDomain` (rattaché au site) |
 | Processus | Modèle `BusinessProcess` |
-| Application (trigramme, criticité, interfaces…) | Modèle `Application` |
-| Flux applicatif (protocole, message, EAI…) | Modèle `ApplicationFlow` |
+| Application (criticité, interfaces…) | Modèle `Application` — **unique dans le référentiel**, rattachée à N processus |
+| Drapeau `multiEtablissement` | **Dérivé** : une application liée à des processus de plusieurs sites est multi-site |
+| Trigramme (clé de jointure JSON) | **Supprimé** — remplacé par de vraies relations (FK / M2M) |
+| Flux applicatif (protocole, message, EAI…) | Modèle `ApplicationFlow` (avec FK établissement) |
 | Serveurs liés par tag `app:XXX` | **Relations M2M directes** vers VM / Device |
 
 Bénéfices de l'intégration native : changelog et journal NetBox sur chaque objet,
@@ -77,6 +79,9 @@ python manage.py import_it_landscape /opt/it-landscape-data --create-sites --wit
 ```
 
 - Les **sites** sont résolus par nom (`--create-sites` pour créer les manquants).
+- Les applications sont **unifiées par nom** : une application présente dans
+  plusieurs établissements devient une seule fiche multi-site. Les trigrammes
+  des fichiers JSON ne servent que de clé de résolution pendant l'import.
 - `--with-infra` crée aussi l'infrastructure NetBox de test : **VM** (vCPU, RAM,
   disque, interface eth0, IP primaire, tag `app:XXX`) depuis `*.infra.json`,
   **VLAN, préfixes et passerelles** depuis `*.network.json`.

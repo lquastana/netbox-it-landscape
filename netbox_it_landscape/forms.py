@@ -72,9 +72,11 @@ class BusinessProcessFilterForm(NetBoxModelFilterSetForm):
 #
 
 class ApplicationForm(NetBoxModelForm):
-    process = DynamicModelChoiceField(
+    processes = DynamicModelMultipleChoiceField(
         queryset=BusinessProcess.objects.all(),
+        required=False,
         label='Processus',
+        help_text='Rattachements métier — plusieurs processus possibles, y compris dans des établissements différents (multi-site)',
     )
     virtual_machines = DynamicModelMultipleChoiceField(
         queryset=VirtualMachine.objects.all(),
@@ -90,8 +92,8 @@ class ApplicationForm(NetBoxModelForm):
     class Meta:
         model = Application
         fields = (
-            'process', 'name', 'trigramme', 'description',
-            'editor', 'referent', 'hosting', 'criticality', 'multi_site',
+            'name', 'processes', 'description',
+            'editor', 'referent', 'hosting', 'criticality',
             'monitoring_url',
             'interface_administrative', 'interface_medicale',
             'interface_facturation', 'interface_planification',
@@ -122,7 +124,6 @@ class ApplicationFilterForm(NetBoxModelFilterSetForm):
         required=False,
         label='Criticité',
     )
-    trigramme = forms.CharField(required=False, label='Trigramme')
     tag = TagFilterField(model)
 
 
@@ -131,6 +132,11 @@ class ApplicationFilterForm(NetBoxModelFilterSetForm):
 #
 
 class ApplicationFlowForm(NetBoxModelForm):
+    site = DynamicModelChoiceField(
+        queryset=Site.objects.all(),
+        required=False,
+        label='Établissement',
+    )
     source = DynamicModelChoiceField(
         queryset=Application.objects.all(),
         label='Application source',
@@ -143,7 +149,7 @@ class ApplicationFlowForm(NetBoxModelForm):
     class Meta:
         model = ApplicationFlow
         fields = (
-            'flow_id', 'source', 'target', 'protocol', 'port',
+            'flow_id', 'site', 'source', 'target', 'protocol', 'port',
             'message_type', 'interface_type', 'eai', 'description', 'tags',
         )
 

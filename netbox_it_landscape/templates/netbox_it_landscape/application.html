@@ -13,20 +13,24 @@
             <td>{{ object.name }}</td>
           </tr>
           <tr>
-            <th scope="row">Trigramme</th>
-            <td>{% if object.trigramme %}<span class="badge text-bg-secondary">{{ object.trigramme }}</span>{% else %}{{ ''|placeholder }}{% endif %}</td>
-          </tr>
-          <tr>
             <th scope="row">Processus</th>
-            <td>{{ object.process|linkify }}</td>
+            <td>
+              {% for process in object.processes.all %}
+                {{ process|linkify }} <span class="text-muted">({{ process.domain.site }})</span>{% if not forloop.last %}<br>{% endif %}
+              {% empty %}
+                {{ ''|placeholder }}
+              {% endfor %}
+            </td>
           </tr>
           <tr>
-            <th scope="row">Domaine</th>
-            <td>{{ object.process.domain|linkify }}</td>
-          </tr>
-          <tr>
-            <th scope="row">Établissement</th>
-            <td>{{ object.process.domain.site|linkify }}</td>
+            <th scope="row">Établissements</th>
+            <td>
+              {% for site in object.site_list %}
+                {{ site|linkify }}{% if not forloop.last %}, {% endif %}
+              {% empty %}
+                {{ ''|placeholder }}
+              {% endfor %}
+            </td>
           </tr>
           <tr>
             <th scope="row">Description</th>
@@ -50,7 +54,7 @@
           </tr>
           <tr>
             <th scope="row">Multi-établissement</th>
-            <td>{% checkmark object.multi_site %}</td>
+            <td>{% checkmark object.is_multi_site %}</td>
           </tr>
           <tr>
             <th scope="row">Supervision</th>

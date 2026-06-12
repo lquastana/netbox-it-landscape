@@ -28,12 +28,11 @@ class ApplicationIndex(SearchIndex):
     model = Application
     fields = (
         ('name', 100),
-        ('trigramme', 60),
         ('description', 500),
         ('editor', 300),
         ('hosting', 300),
     )
-    display_attrs = ('trigramme', 'editor', 'criticality')
+    display_attrs = ('editor', 'criticality')
 
 
 @register_search

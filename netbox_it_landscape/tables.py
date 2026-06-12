@@ -32,28 +32,31 @@ class BusinessProcessTable(NetBoxTable):
         default_columns = ('name', 'domain', 'site', 'description', 'application_count')
 
 
+SITE_LIST_TEMPLATE = """
+{% for s in record.site_list %}<a href="{{ s.get_absolute_url }}">{{ s }}</a>{% if not forloop.last %}, {% endif %}{% empty %}&mdash;{% endfor %}
+"""
+
+
 class ApplicationTable(NetBoxTable):
     name = tables.Column(linkify=True, verbose_name='Nom')
-    trigramme = tables.Column(verbose_name='Trigramme')
-    process = tables.Column(linkify=True, verbose_name='Processus')
-    domain = tables.Column(
-        accessor='process__domain', linkify=True, verbose_name='Domaine',
+    processes = tables.ManyToManyColumn(linkify_item=True, verbose_name='Processus')
+    sites = tables.TemplateColumn(
+        template_code=SITE_LIST_TEMPLATE,
+        verbose_name='Établissements',
+        orderable=False,
     )
-    site = tables.Column(
-        accessor='process__domain__site', linkify=True, verbose_name='Établissement',
-    )
+    is_multi_site = columns.BooleanColumn(verbose_name='Multi-site', orderable=False)
     criticality = ChoiceFieldColumn(verbose_name='Criticité')
-    multi_site = columns.BooleanColumn(verbose_name='Multi-étab.')
     tags = columns.TagColumn(url_name='plugins:netbox_it_landscape:application_list')
 
     class Meta(NetBoxTable.Meta):
         model = Application
         fields = (
-            'pk', 'id', 'name', 'trigramme', 'process', 'domain', 'site',
-            'editor', 'referent', 'hosting', 'criticality', 'multi_site', 'tags',
+            'pk', 'id', 'name', 'processes', 'sites', 'is_multi_site',
+            'editor', 'referent', 'hosting', 'criticality', 'tags',
         )
         default_columns = (
-            'name', 'trigramme', 'domain', 'site', 'editor', 'criticality',
+            'name', 'sites', 'is_multi_site', 'editor', 'criticality',
         )
 
 
@@ -62,11 +65,7 @@ class ApplicationFlowTable(NetBoxTable):
     source = tables.Column(linkify=True, verbose_name='Source')
     target = tables.Column(linkify=True, verbose_name='Cible')
     interface_type = ChoiceFieldColumn(verbose_name="Type d'interface")
-    site = tables.Column(
-        accessor='source__process__domain__site',
-        linkify=True,
-        verbose_name='Établissement',
-    )
+    site = tables.Column(linkify=True, verbose_name='Établissement')
     tags = columns.TagColumn(url_name='plugins:netbox_it_landscape:applicationflow_list')
 
     class Meta(NetBoxTable.Meta):

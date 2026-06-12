@@ -172,7 +172,7 @@
     </div>
     <div>
       <label class="form-label mb-1">Recherche</label>
-      <input type="text" name="q" value="{{ filter_q }}" class="form-control form-control-sm" placeholder="Nom, trigramme, éditeur…">
+      <input type="text" name="q" value="{{ filter_q }}" class="form-control form-control-sm" placeholder="Nom, éditeur…">
     </div>
     <button type="submit" class="btn btn-sm btn-primary">Filtrer</button>
     {% if filter_q or filter_site_id or filter_criticality %}
@@ -221,10 +221,10 @@
                     {% for app in proc.applications %}
                       <div class="itl-mini {% if app.is_critical %}is-critical{% endif %}">
                         <div class="itl-mini-top">
-                          <span class="badge text-bg-secondary">{{ app.obj.trigramme|default:'N/A' }}</span>
+                          <h6><a href="{{ app.obj.get_absolute_url }}">{{ app.obj.name }}</a></h6>
                           <span class="itl-mini-dot" style="background: {% if app.is_critical %}#dc2626{% else %}#64748b{% endif %};" title="{{ app.obj.get_criticality_display }}"></span>
                         </div>
-                        <h6><a href="{{ app.obj.get_absolute_url }}">{{ app.obj.name }}</a></h6>
+                        {% if app.obj.is_multi_site %}<span class="badge text-bg-purple mb-1" style="font-size: .55rem;">Multi-site</span>{% endif %}
                         <div class="itl-mini-foot">
                           <span class="itl-mini-host">{{ app.obj.hosting|default:'' }}</span>
                           <span class="itl-iface-dots">
@@ -292,14 +292,13 @@
                   {% for app in proc.applications %}
                     <article class="itl-app-card {% if app.is_critical %}is-critical{% endif %}">
                       <div class="itl-app-topline">
-                        <span class="badge text-bg-secondary">{{ app.obj.trigramme|default:'N/A' }}</span>
                         <span class="badge text-bg-{{ app.obj.get_criticality_color }}">{{ app.obj.get_criticality_display }}</span>
+                        {% if app.obj.is_multi_site %}<span class="badge text-bg-purple">Multi-site</span>{% endif %}
                       </div>
                       <h5><a href="{{ app.obj.get_absolute_url }}">{{ app.obj.name }}</a></h5>
                       <p>{{ app.obj.description|default:'Description non renseignée.' }}</p>
                       <div class="itl-app-meta">
                         <span>{{ app.obj.hosting|default:'Hébergement non renseigné' }}</span>
-                        {% if app.obj.multi_site %}<span>Multi-site</span>{% endif %}
                       </div>
                       <div class="itl-chips">
                         {% for chip in app.chips %}

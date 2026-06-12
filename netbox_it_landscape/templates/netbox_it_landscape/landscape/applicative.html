@@ -22,7 +22,7 @@
 <div class="itl-toolbar">
   <div class="me-auto">
     <h1 class="mb-0">Vue applicative</h1>
-    <div class="text-muted">Applications regroupées par trigramme avec serveurs associés</div>
+    <div class="text-muted">Applications du référentiel avec serveurs et établissements associés</div>
   </div>
   <form method="get" class="d-flex flex-wrap gap-2 align-items-end">
     <div>
@@ -60,18 +60,17 @@
     <section class="itl-group {% if group.has_critical %}is-critical{% endif %}">
       <div class="itl-group-header">
         <h3>
-          <span class="badge text-bg-secondary me-2">{{ group.trigramme }}</span>
-          <a href="{{ group.apps.0.get_absolute_url }}">{{ group.name }}</a>
+          <a href="{{ group.app.get_absolute_url }}">{{ group.name }}</a>
         </h3>
         <div class="d-flex gap-2">
+          {% if group.is_multi_site %}<span class="badge text-bg-purple">Multi-site</span>{% endif %}
           {% if group.has_critical %}<span class="badge text-bg-red">Critique</span>{% endif %}
           <span class="badge text-bg-blue">{{ group.servers|length }} serveur{{ group.servers|length|pluralize }}</span>
         </div>
       </div>
       <div class="itl-group-body">
         <div class="itl-sites mb-2">
-          {{ group.sites|join:' · ' }}
-          {% if group.apps|length > 1 %} — {{ group.apps|length }} instances{% endif %}
+          {{ group.sites|join:' · '|default:'Aucun rattachement métier' }}
         </div>
         {% if group.servers %}
           <table class="table table-sm itl-server-table">

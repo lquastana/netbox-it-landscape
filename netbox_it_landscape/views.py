@@ -69,10 +69,10 @@ class BusinessProcessView(generic.ObjectView):
     queryset = BusinessProcess.objects.select_related('domain__site')
 
     def get_extra_context(self, request, instance):
-        applications = instance.applications.select_related('process__domain__site')
+        applications = instance.applications.prefetch_related('processes__domain__site')
         return {
             'application_table': tables.ApplicationTable(
-                applications, exclude=('process', 'domain', 'site'),
+                applications, exclude=('processes',),
             ),
         }
 
@@ -97,27 +97,23 @@ class BusinessProcessBulkDeleteView(generic.BulkDeleteView):
 #
 
 class ApplicationListView(generic.ObjectListView):
-    queryset = Application.objects.select_related('process__domain__site')
+    queryset = Application.objects.prefetch_related('processes__domain__site')
     table = tables.ApplicationTable
     filterset = filtersets.ApplicationFilterSet
     filterset_form = forms.ApplicationFilterForm
 
 
 class ApplicationView(generic.ObjectView):
-    queryset = Application.objects.select_related('process__domain__site').prefetch_related(
-        'virtual_machines', 'devices',
+    queryset = Application.objects.prefetch_related(
+        'processes__domain__site', 'virtual_machines', 'devices',
     )
 
     def get_extra_context(self, request, instance):
-        outbound = instance.flows_as_source.select_related(
-            'source__process__domain__site', 'target__process__domain__site',
-        )
-        inbound = instance.flows_as_target.select_related(
-            'source__process__domain__site', 'target__process__domain__site',
-        )
+        outbound = instance.flows_as_source.select_related('site', 'source', 'target')
+        inbound = instance.flows_as_target.select_related('site', 'source', 'target')
         return {
-            'outbound_table': tables.ApplicationFlowTable(outbound, exclude=('source', 'site')),
-            'inbound_table': tables.ApplicationFlowTable(inbound, exclude=('target', 'site')),
+            'outbound_table': tables.ApplicationFlowTable(outbound, exclude=('source',)),
+            'inbound_table': tables.ApplicationFlowTable(inbound, exclude=('target',)),
         }
 
 
@@ -141,18 +137,14 @@ class ApplicationBulkDeleteView(generic.BulkDeleteView):
 #
 
 class ApplicationFlowListView(generic.ObjectListView):
-    queryset = ApplicationFlow.objects.select_related(
-        'source__process__domain__site', 'target__process__domain__site',
-    )
+    queryset = ApplicationFlow.objects.select_related('site', 'source', 'target')
     table = tables.ApplicationFlowTable
     filterset = filtersets.ApplicationFlowFilterSet
     filterset_form = forms.ApplicationFlowFilterForm
 
 
 class ApplicationFlowView(generic.ObjectView):
-    queryset = ApplicationFlow.objects.select_related(
-        'source__process__domain__site', 'target__process__domain__site',
-    )
+    queryset = ApplicationFlow.objects.select_related('site', 'source', 'target')
 
 
 class ApplicationFlowEditView(generic.ObjectEditView):
@@ -207,27 +199,31 @@ class BusinessLandscapeView(LoginRequiredMixin, View):
         site_id, q, criticality, sites_choices = _landscape_filters(request)
         view_mode = 'paysage' if request.GET.get('view') == 'paysage' else 'detail'
 
-        applications = Application.objects.select_related('process__domain__site')
+        applications = Application.objects.prefetch_related('processes__domain__site')
         if site_id:
-            applications = applications.filter(process__domain__site_id=site_id)
+            applications = applications.filter(processes__domain__site_id=site_id).distinct()
         if criticality:
             applications = applications.filter(criticality=criticality)
         if q:
             applications = applications.filter(
                 Q(name__icontains=q)
-                | Q(trigramme__icontains=q)
                 | Q(description__icontains=q)
                 | Q(editor__icontains=q)
             )
 
-        tree = OrderedDict()
-        for app in applications.order_by(
-            'process__domain__site__name', 'process__domain__name', 'process__name', 'name',
-        ):
-            site = app.process.domain.site
-            domain = app.process.domain
-            process = app.process
+        # Une application multi-site apparaît dans chacun de ses processus
+        placements = []
+        for app in applications:
+            for process in app.processes.all():
+                if site_id and str(process.domain.site_id) != str(site_id):
+                    continue
+                placements.append((process.domain.site, process.domain, process, app))
+        placements.sort(key=lambda p: (
+            p[0].name.lower(), p[1].name.lower(), p[2].name.lower(), p[3].name.lower(),
+        ))
 
+        tree = OrderedDict()
+        for site, domain, process, app in placements:
             site_entry = tree.setdefault(site.pk, {
                 'site': site, 'domains': OrderedDict(),
                 'app_count': 0, 'critical_count': 0,
@@ -276,77 +272,61 @@ class BusinessLandscapeView(LoginRequiredMixin, View):
 
 
 class ApplicativeLandscapeView(LoginRequiredMixin, View):
-    """Vue applicative : applications regroupées par trigramme avec serveurs associés."""
+    """Vue applicative : une carte par application avec ses serveurs et établissements."""
     template_name = 'netbox_it_landscape/landscape/applicative.html'
 
     def get(self, request):
         site_id, q, criticality, sites_choices = _landscape_filters(request)
 
-        applications = Application.objects.select_related(
-            'process__domain__site',
-        ).prefetch_related(
+        applications = Application.objects.prefetch_related(
+            'processes__domain__site',
             'virtual_machines__primary_ip4', 'virtual_machines__role',
             'devices__primary_ip4', 'devices__role',
         )
         if site_id:
-            applications = applications.filter(process__domain__site_id=site_id)
+            applications = applications.filter(processes__domain__site_id=site_id).distinct()
         if criticality:
             applications = applications.filter(criticality=criticality)
         if q:
             applications = applications.filter(
                 Q(name__icontains=q)
-                | Q(trigramme__icontains=q)
                 | Q(description__icontains=q)
                 | Q(editor__icontains=q)
                 | Q(virtual_machines__name__icontains=q)
                 | Q(devices__name__icontains=q)
             ).distinct()
 
-        groups = OrderedDict()
-        for app in applications.order_by('trigramme', 'name'):
-            key = app.trigramme or '—'
-            group = groups.setdefault(key, {
-                'trigramme': key,
-                'name': app.name,
-                'apps': [],
-                'sites': [],
-                'servers': [],
-                'server_keys': set(),
-                'has_critical': False,
-            })
-            group['apps'].append(app)
-            site_name = app.process.domain.site.name
-            if site_name not in group['sites']:
-                group['sites'].append(site_name)
-            if app.criticality == CriticalityChoices.CRITICAL:
-                group['has_critical'] = True
-
-            for vm in app.virtual_machines.all():
-                if ('vm', vm.pk) in group['server_keys']:
-                    continue
-                group['server_keys'].add(('vm', vm.pk))
-                group['servers'].append({
+        groups = []
+        for app in applications.order_by('name'):
+            sites = [site.name for site in app.site_list]
+            servers = [
+                {
                     'obj': vm,
                     'kind': 'VM',
                     'ip': str(vm.primary_ip4.address.ip) if vm.primary_ip4 else '',
                     'role': vm.role.name if vm.role else '',
-                })
-            for device in app.devices.all():
-                if ('device', device.pk) in group['server_keys']:
-                    continue
-                group['server_keys'].add(('device', device.pk))
-                group['servers'].append({
+                }
+                for vm in app.virtual_machines.all()
+            ] + [
+                {
                     'obj': device,
                     'kind': 'Physique',
                     'ip': str(device.primary_ip4.address.ip) if device.primary_ip4 else '',
                     'role': device.role.name if device.role else '',
-                })
-
-        for group in groups.values():
-            del group['server_keys']
+                }
+                for device in app.devices.all()
+            ]
+            groups.append({
+                'app': app,
+                'name': app.name,
+                'sites': sites,
+                'is_multi_site': len(sites) > 1,
+                'servers': servers,
+                'has_critical': app.criticality == CriticalityChoices.CRITICAL,
+            })
 
         return render(request, self.template_name, {
-            'groups': list(groups.values()),
+            'groups': groups,
             'sites_choices': sites_choices,
             'criticality_choices': CriticalityChoices.CHOICES,
             'filter_site_id': site_id,
@@ -372,11 +352,9 @@ class FluxLandscapeView(LoginRequiredMixin, View):
         protocol = request.GET.get('protocol') or ''
         eai = request.GET.get('eai') or ''
 
-        flows = ApplicationFlow.objects.select_related(
-            'source__process__domain__site', 'target__process__domain__site',
-        )
+        flows = ApplicationFlow.objects.select_related('site', 'source', 'target')
         if site_id:
-            flows = flows.filter(source__process__domain__site_id=site_id)
+            flows = flows.filter(site_id=site_id)
         if interface_type:
             flows = flows.filter(interface_type=interface_type)
         if protocol:
@@ -388,9 +366,7 @@ class FluxLandscapeView(LoginRequiredMixin, View):
                 Q(flow_id__icontains=q)
                 | Q(description__icontains=q)
                 | Q(message_type__icontains=q)
-                | Q(source__trigramme__icontains=q)
                 | Q(source__name__icontains=q)
-                | Q(target__trigramme__icontains=q)
                 | Q(target__name__icontains=q)
             )
         flows = list(flows.order_by('flow_id', 'id'))

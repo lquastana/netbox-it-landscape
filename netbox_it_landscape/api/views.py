@@ -18,8 +18,8 @@ class BusinessProcessViewSet(NetBoxModelViewSet):
 
 
 class ApplicationViewSet(NetBoxModelViewSet):
-    queryset = Application.objects.select_related('process__domain__site').prefetch_related(
-        'virtual_machines', 'devices', 'tags',
+    queryset = Application.objects.prefetch_related(
+        'processes__domain__site', 'virtual_machines', 'devices', 'tags',
     )
     serializer_class = serializers.ApplicationSerializer
     filterset_class = filtersets.ApplicationFilterSet
@@ -27,7 +27,7 @@ class ApplicationViewSet(NetBoxModelViewSet):
 
 class ApplicationFlowViewSet(NetBoxModelViewSet):
     queryset = ApplicationFlow.objects.select_related(
-        'source__process__domain__site', 'target__process__domain__site',
+        'site', 'source', 'target',
     ).prefetch_related('tags')
     serializer_class = serializers.ApplicationFlowSerializer
     filterset_class = filtersets.ApplicationFlowFilterSet
