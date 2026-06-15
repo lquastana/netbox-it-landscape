@@ -10,8 +10,8 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-python@v5.6.0
         with:
           python-version: '3.12'
       - name: Install ruff
@@ -57,18 +57,18 @@ jobs:
           --health-retries 5
     steps:
       - name: Checkout plugin
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
         with:
           path: plugin
 
       - name: Checkout NetBox ${{ matrix.netbox-version }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
         with:
           repository: netbox-community/netbox
           ref: ${{ matrix.netbox-version }}
           path: netbox
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5.6.0
         with:
           python-version: '3.12'
           cache: pip
