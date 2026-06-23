@@ -4,7 +4,10 @@ from django.utils.translation import gettext_lazy as _
 from netbox.models import NetBoxModel
 from utilities.fields import ColorField
 
-from .choices import CriticalityChoices, InterfaceTypeChoices
+from .choices import (
+    CriticalityChoices,
+    InterfaceTypeChoices,
+)
 
 
 class BusinessDomain(NetBoxModel):

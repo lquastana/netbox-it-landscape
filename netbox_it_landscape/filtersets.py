@@ -1,17 +1,26 @@
 import django_filters
 from dcim.models import Site
 from django.db.models import Q
+from django.utils.translation import gettext_lazy as _
 from netbox.filtersets import NetBoxModelFilterSet
 
-from .choices import CriticalityChoices, InterfaceTypeChoices
-from .models import Application, ApplicationFlow, BusinessDomain, BusinessProcess
+from .choices import (
+    CriticalityChoices,
+    InterfaceTypeChoices,
+)
+from .models import (
+    Application,
+    ApplicationFlow,
+    BusinessDomain,
+    BusinessProcess,
+)
 
 
 class BusinessDomainFilterSet(NetBoxModelFilterSet):
     site_id = django_filters.ModelMultipleChoiceFilter(
         field_name='site',
         queryset=Site.objects.all(),
-        label='Établissement (ID)',
+        label=_('Establishment (ID)'),
     )
 
     class Meta:
@@ -28,12 +37,12 @@ class BusinessProcessFilterSet(NetBoxModelFilterSet):
     domain_id = django_filters.ModelMultipleChoiceFilter(
         field_name='domain',
         queryset=BusinessDomain.objects.all(),
-        label='Domaine (ID)',
+        label=_('Domain (ID)'),
     )
     site_id = django_filters.ModelMultipleChoiceFilter(
         field_name='domain__site',
         queryset=Site.objects.all(),
-        label='Établissement (ID)',
+        label=_('Establishment (ID)'),
     )
 
     class Meta:
@@ -50,17 +59,17 @@ class ApplicationFilterSet(NetBoxModelFilterSet):
     process_id = django_filters.ModelMultipleChoiceFilter(
         field_name='processes',
         queryset=BusinessProcess.objects.all(),
-        label='Processus (ID)',
+        label=_('Process (ID)'),
     )
     domain_id = django_filters.ModelMultipleChoiceFilter(
         field_name='processes__domain',
         queryset=BusinessDomain.objects.all(),
-        label='Domaine (ID)',
+        label=_('Domain (ID)'),
     )
     site_id = django_filters.ModelMultipleChoiceFilter(
         field_name='processes__domain__site',
         queryset=Site.objects.all(),
-        label='Établissement (ID)',
+        label=_('Establishment (ID)'),
     )
     criticality = django_filters.MultipleChoiceFilter(
         choices=CriticalityChoices,
@@ -82,17 +91,17 @@ class ApplicationFlowFilterSet(NetBoxModelFilterSet):
     source_id = django_filters.ModelMultipleChoiceFilter(
         field_name='source',
         queryset=Application.objects.all(),
-        label='Application source (ID)',
+        label=_('Source application (ID)'),
     )
     target_id = django_filters.ModelMultipleChoiceFilter(
         field_name='target',
         queryset=Application.objects.all(),
-        label='Application cible (ID)',
+        label=_('Target application (ID)'),
     )
     site_id = django_filters.ModelMultipleChoiceFilter(
         field_name='site',
         queryset=Site.objects.all(),
-        label='Établissement (ID)',
+        label=_('Establishment (ID)'),
     )
     interface_type = django_filters.MultipleChoiceFilter(
         choices=InterfaceTypeChoices,

@@ -5,7 +5,7 @@ from . import models, views
 
 urlpatterns = (
 
-    # Vues cartographiques
+    # ── Vues cartographiques ───────────────────────────────────────────────────
     path('synthese/', views.KpiLandscapeView.as_view(), name='kpi_landscape'),
     path('comparaison/', views.ComparisonLandscapeView.as_view(), name='comparison_landscape'),
     path('initialisation/', views.SetupWizardView.as_view(), name='setup_wizard'),
@@ -43,7 +43,7 @@ urlpatterns = (
     path('applications/<int:pk>/journal-modifications/', ObjectChangeLogView.as_view(), name='application_changelog', kwargs={'model': models.Application}),
     path('applications/<int:pk>/journal/', ObjectJournalView.as_view(), name='application_journal', kwargs={'model': models.Application}),
 
-    # Flux applicatifs
+    # ── Flux applicatifs ───────────────────────────────────────────────────────
     path('flux/', views.ApplicationFlowListView.as_view(), name='applicationflow_list'),
     path('flux/ajouter/', views.ApplicationFlowEditView.as_view(), name='applicationflow_add'),
     path('flux/supprimer/', views.ApplicationFlowBulkDeleteView.as_view(), name='applicationflow_bulk_delete'),
@@ -52,4 +52,7 @@ urlpatterns = (
     path('flux/<int:pk>/supprimer/', views.ApplicationFlowDeleteView.as_view(), name='applicationflow_delete'),
     path('flux/<int:pk>/journal-modifications/', ObjectChangeLogView.as_view(), name='applicationflow_changelog', kwargs={'model': models.ApplicationFlow}),
     path('flux/<int:pk>/journal/', ObjectJournalView.as_view(), name='applicationflow_journal', kwargs={'model': models.ApplicationFlow}),
+
+    # ── Cascade Impact Simulation ──────────────────────────────────────────────
+    path('cascade/simulateur/', views.CascadeSimulatorView.as_view(), name='cascade_simulator'),
 )

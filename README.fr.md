@@ -44,6 +44,12 @@ tags, et panneaux contextuels injectés sur les pages Site / VM / Device.
   matrice de similarité (Jaccard), applications déjà mutualisées,
   **opportunités de convergence** (même processus, applications différentes),
   spécificités par établissement.
+- **Simulateur d'impact en cascade** (`/plugins/it-landscape/cascade/simulateur/`) :
+  construit un scénario d'incident à partir d'un ou plusieurs composants en
+  panne (application, flux, VM, équipement, hébergeur) avec une gravité chacun ;
+  l'impact est propagé via les flux applicatifs et restitué sous forme
+  d'applications et processus impactés regroupés par établissement, flux
+  bloqués, causes et actions recommandées.
 - **Assistant d'initialisation** (`/plugins/it-landscape/initialisation/`) :
   bundles de modélisation prêts à l'emploi — **SIH** (hôpital : GAP, DPI,
   pharmacie, imagerie… avec flux HL7/DICOM via un EAI) et **Industrie** (ERP,

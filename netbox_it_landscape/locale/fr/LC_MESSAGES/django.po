@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: netbox-it-landscape 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 14:02+0000\n"
+"POT-Creation-Date: 2026-06-15 20:45+0000\n"
 "PO-Revision-Date: 2026-06-12 14:10+0000\n"
 "Last-Translator: Laurent Quastana\n"
 "Language-Team: French\n"
@@ -19,14 +19,25 @@ msgstr ""
 msgid "Hospital information system (SIH)"
 msgstr "Système d'information hospitalier (SIH)"
 
-msgid "French hospital IS modeling: patient administration, EHR, pharmacy, emergency, imaging, billing, HR and technical tools — with HL7/DICOM flows through an integration engine (EAI)."
-msgstr "Modélisation d'un SI hospitalier : gestion administrative du patient, DPI, pharmacie, urgences, imagerie, facturation, RH et outils techniques — avec des flux HL7/DICOM via un moteur d'intégration (EAI)."
+msgid ""
+"French hospital IS modeling: patient administration, EHR, pharmacy, "
+"emergency, imaging, billing, HR and technical tools — with HL7/DICOM flows "
+"through an integration engine (EAI)."
+msgstr ""
+"Modélisation d'un SI hospitalier : gestion administrative du patient, DPI, "
+"pharmacie, urgences, imagerie, facturation, RH et outils techniques — avec "
+"des flux HL7/DICOM via un moteur d'intégration (EAI)."
 
 msgid "Manufacturing / Industry"
 msgstr "Industrie / Manufacturing"
 
-msgid "Industrial IS modeling: ERP, MES, SCADA, warehouse and transport management, quality (LIMS), PLM, HR — with OPC-UA, EDI and API flows through an ESB."
-msgstr "Modélisation d'un SI industriel : ERP, MES, SCADA, gestion d'entrepôt et de transport, qualité (LIMS), PLM, RH — avec des flux OPC-UA, EDI et API via un ESB."
+msgid ""
+"Industrial IS modeling: ERP, MES, SCADA, warehouse and transport management, "
+"quality (LIMS), PLM, HR — with OPC-UA, EDI and API flows through an ESB."
+msgstr ""
+"Modélisation d'un SI industriel : ERP, MES, SCADA, gestion d'entrepôt et de "
+"transport, qualité (LIMS), PLM, RH — avec des flux OPC-UA, EDI et API via un "
+"ESB."
 
 msgid "Critical"
 msgstr "Critique"
@@ -58,8 +69,12 @@ msgstr "Domaine"
 msgid "Processes"
 msgstr "Processus"
 
-msgid "Business attachments — several processes allowed, including in different facilities (multi-site)"
-msgstr "Rattachements métier — plusieurs processus possibles, y compris dans des établissements différents (multi-site)"
+msgid ""
+"Business attachments — several processes allowed, including in different "
+"facilities (multi-site)"
+msgstr ""
+"Rattachements métier — plusieurs processus autorisés, y compris dans des "
+"établissements différents (multi-site)"
 
 msgid "Virtual machines"
 msgstr "Machines virtuelles"
@@ -86,7 +101,8 @@ msgid "Load sample applications"
 msgstr "Charger les applications d'exemple"
 
 msgid "Load sample infrastructure (VLANs, networks, virtual machines)"
-msgstr "Charger l'infrastructure d'exemple (VLAN, réseaux, machines virtuelles)"
+msgstr ""
+"Charger l'infrastructure d'exemple (VLAN, réseaux, machines virtuelles)"
 
 msgid "Load sample application flows"
 msgstr "Charger les flux applicatifs d'exemple"
@@ -190,6 +206,9 @@ msgstr "flux applicatif"
 msgid "application flows"
 msgstr "flux applicatifs"
 
+msgid "Impact simulator"
+msgstr "Simulateur d'impact"
+
 msgid "KPI summary"
 msgstr "Synthèse KPI"
 
@@ -228,6 +247,9 @@ msgstr "Cartographie"
 
 msgid "Referential"
 msgstr "Référentiel"
+
+msgid "Cascade Impact"
+msgstr "Impact en cascade"
 
 msgid "Administration"
 msgstr "Administration"
@@ -285,6 +307,83 @@ msgstr "Domaine métier"
 
 msgid "Business process"
 msgstr "Processus métier"
+
+msgid "Incident Impact Simulator"
+msgstr "Simulateur d'impact d'incident"
+
+msgid "Add a failed component"
+msgstr "Ajouter un composant en panne"
+
+msgid "Component type"
+msgstr "Type de composant"
+
+msgid "Virtual machine"
+msgstr "Machine virtuelle"
+
+msgid "Device"
+msgstr "Équipement"
+
+msgid "Hosting provider"
+msgstr "Hébergeur"
+
+msgid "Flow"
+msgstr "Flux"
+
+msgid "Incident status"
+msgstr "Statut de l'incident"
+
+msgid "Add to scenario"
+msgstr "Ajouter au scénario"
+
+msgid "Scenario"
+msgstr "Scénario"
+
+msgid "No component added yet"
+msgstr "Aucun composant ajouté"
+
+msgid "Simulate"
+msgstr "Simuler"
+
+msgid "Blocked flows"
+msgstr "Flux bloqués"
+
+msgid "No flows blocked."
+msgstr "Aucun flux bloqué."
+
+msgid "Remove"
+msgstr "Supprimer"
+
+msgid "Impacted apps"
+msgstr "Applications impactées"
+
+msgid "Impacted processes"
+msgstr "Processus impactés"
+
+msgid "process(es)"
+msgstr "processus"
+
+msgid "Causes:"
+msgstr "Causes :"
+
+msgid "Recommended actions"
+msgstr "Actions recommandées"
+
+msgid "Select one or more failed components on the left, then click Simulate."
+msgstr ""
+"Sélectionnez un ou plusieurs composants en panne à gauche, puis cliquez sur "
+"Simuler."
+
+msgid "HS — Down"
+msgstr "HS — Indisponible"
+
+msgid "Degraded"
+msgstr "Dégradé"
+
+msgid "Latency"
+msgstr "Latence"
+
+msgid "Intermittent"
+msgstr "Intermittent"
 
 msgid "Applications (IT Landscape)"
 msgstr "Applications (IT Landscape)"
@@ -356,8 +455,12 @@ msgid "Reset"
 msgstr "Réinitialiser"
 
 #, python-format
-msgid "Use the <a href=\"%(wizard_url)s\">setup wizard</a> or import your data with <code>manage.py import_it_landscape</code>."
-msgstr "Utilisez l'<a href=\"%(wizard_url)s\">assistant d'initialisation</a> ou importez vos données avec <code>manage.py import_it_landscape</code>."
+msgid ""
+"Use the <a href=\"%(wizard_url)s\">setup wizard</a> or import your data with "
+"<code>manage.py import_it_landscape</code>."
+msgstr ""
+"Utilisez l'<a href=\"%(wizard_url)s\">assistant d'initialisation</a> ou "
+"importez vos données avec <code>manage.py import_it_landscape</code>."
 
 msgid "domains"
 msgstr "domaines"
@@ -383,8 +486,12 @@ msgstr "Similarité des parcs applicatifs et opportunités de mutualisation"
 msgid "Compare"
 msgstr "Comparer"
 
-msgid "At least two facilities with a business cartography are required for comparison."
-msgstr "Au moins deux établissements avec une cartographie métier sont nécessaires pour la comparaison."
+msgid ""
+"At least two facilities with a business cartography are required for "
+"comparison."
+msgstr ""
+"Au moins deux établissements avec une cartographie métier sont nécessaires "
+"pour la comparaison."
 
 msgid "Facilities compared"
 msgstr "Établissements comparés"
@@ -419,8 +526,12 @@ msgstr "communes"
 msgid "Mutualization opportunities"
 msgstr "Opportunités de mutualisation"
 
-msgid "Identical processes covered by different applications — candidates for convergence"
-msgstr "Processus identiques couverts par des applications différentes — candidats à la convergence"
+msgid ""
+"Identical processes covered by different applications — candidates for "
+"convergence"
+msgstr ""
+"Processus identiques couverts par des applications différentes — candidats à "
+"la convergence"
 
 msgid "Applications by facility"
 msgstr "Applications par établissement"
@@ -428,8 +539,12 @@ msgstr "Applications par établissement"
 msgid "Distinct products"
 msgstr "Produits distincts"
 
-msgid "No divergence detected: shared processes use the same applications everywhere."
-msgstr "Aucune divergence détectée : les processus partagés utilisent partout les mêmes applications."
+msgid ""
+"No divergence detected: shared processes use the same applications "
+"everywhere."
+msgstr ""
+"Aucune divergence détectée : les processus partagés utilisent les mêmes "
+"applications partout."
 
 msgid "Already mutualized"
 msgstr "Déjà mutualisé"
@@ -438,7 +553,8 @@ msgid "Coverage"
 msgstr "Couverture"
 
 msgid "No application is shared between the selected facilities."
-msgstr "Aucune application n'est partagée entre les établissements sélectionnés."
+msgstr ""
+"Aucune application n'est partagée entre les établissements sélectionnés."
 
 msgid "Facility-specific applications"
 msgstr "Applications spécifiques à un établissement"
@@ -513,13 +629,19 @@ msgstr "Dépendance aux EAI"
 msgid "%(pct)s%% of flows"
 msgstr "%(pct)s%% des flux"
 
-msgid "Share of flows carried by an integration engine — an unavailable EAI interrupts all its flows."
-msgstr "Part des flux transitant par un moteur d'intégration — un EAI indisponible interrompt tous ses flux."
+msgid ""
+"Share of flows carried by an integration engine — an unavailable EAI "
+"interrupts all its flows."
+msgstr ""
+"Part des flux portés par un moteur d'intégration — un EAI indisponible "
+"interrompt tous ses flux.Part des flux transitant par un moteur "
+"d'intégration — un EAI indisponible interrompt tous ses flux."
 
 msgid "Most connected applications"
 msgstr "Applications les plus connectées"
 
-msgid "Maximum potential impact in case of incident (inbound + outbound flows)."
+msgid ""
+"Maximum potential impact in case of incident (inbound + outbound flows)."
 msgstr "Impact potentiel maximal en cas d'incident (flux entrants + sortants)."
 
 msgid "Top vendors"
@@ -535,29 +657,16 @@ msgstr "Applications par établissement"
 msgid "incl. %(critical)s critical"
 msgstr "dont %(critical)s critiques"
 
-msgid "Bootstrap your cartography with a ready-to-use sector modeling bundle and sample data."
-msgstr "Démarrez votre cartographie avec un bundle de modélisation sectoriel prêt à l'emploi et des données d'exemple."
+msgid ""
+"Bootstrap your cartography with a ready-to-use sector modeling bundle and "
+"sample data."
+msgstr ""
+"Initialisez votre cartographie avec un bundle de modélisation sectorielle "
+"prêt à l'emploi et des données exemple.Démarrez votre cartographie avec un "
+"bundle de modélisation sectoriel prêt à l'emploi et des données d'exemple."
 
 msgid "Missing permissions"
 msgstr "Permissions manquantes"
-
-msgid "missing permission"
-msgstr "permission manquante"
-
-msgid "You do not have permission to create applications."
-msgstr "Vous n'avez pas la permission de créer des applications."
-
-msgid "You do not have permission to create application flows."
-msgstr "Vous n'avez pas la permission de créer des flux applicatifs."
-
-msgid "You do not have permission to create the sample infrastructure (virtual machines, VLANs, prefixes, IP addresses, tags)."
-msgstr "Vous n'avez pas la permission de créer l'infrastructure d'exemple (machines virtuelles, VLAN, préfixes, adresses IP, tags)."
-
-msgid "This site does not exist and you do not have permission to create sites."
-msgstr "Ce site n'existe pas et vous n'avez pas la permission de créer des sites."
-
-msgid "You can only target an existing site (no permission to create sites)."
-msgstr "Vous ne pouvez cibler qu'un site existant (pas de permission de création de sites)."
 
 msgid "Bundle applied successfully"
 msgstr "Bundle appliqué avec succès"
@@ -596,11 +705,74 @@ msgstr "ex. CH Sainte-Marie, Usine de Lyon…"
 msgid "Sample data"
 msgstr "Données d'exemple"
 
+msgid "missing permission"
+msgstr "permission manquante"
+
 msgid "Without sample data, only the domain / process structure is created."
-msgstr "Sans données d'exemple, seule la structure domaines / processus est créée."
+msgstr ""
+"Sans données d'exemple, seule la structure domaines / processus est créée."
+
+msgid "You can only target an existing site (no permission to create sites)."
+msgstr ""
+"Vous ne pouvez cibler qu'un site existant (pas de permission de création de "
+"sites)."
 
 msgid "Apply bundle"
 msgstr "Appliquer le bundle"
+
+msgid "Down"
+msgstr "Indisponible"
+
+msgid "Infrastructure"
+msgstr "Infrastructure"
+
+msgid "Outbound flow"
+msgstr "Flux sortant"
+
+msgid "Upstream dependency"
+msgstr "Dépendance amont"
+
+msgid "Trigger the DRP/BCP if available"
+msgstr "Déclencher le PRA/PCA si disponible"
+
+msgid "Notify IT management and support teams"
+msgstr "Notifier la DSI et les équipes support"
+
+msgid "Check the server status (monitoring, system logs)"
+msgstr "Vérifier l'état du serveur (monitoring, logs système)"
+
+msgid "Fail over to the backup server or restart"
+msgstr "Basculer sur le serveur de secours ou redémarrer"
+
+msgid "Check the middleware / interface availability"
+msgstr "Vérifier la disponibilité du middleware / de l'interface"
+
+msgid "Enable degraded mode without the dependent flows"
+msgstr "Activer le mode dégradé sans les flux dépendants"
+
+msgid "Contact the hosting provider and get a recovery ETA"
+msgstr "Contacter l'hébergeur et obtenir un délai de rétablissement"
+
+msgid "Review the contractual SLA commitments"
+msgstr "Vérifier les engagements SLA contractuels"
+
+msgid "Identify and address the source component first"
+msgstr "Identifier et traiter le composant source en priorité"
+
+msgid "Enable a manual data-entry fallback if possible"
+msgstr "Activer un mode de saisie manuelle si possible"
+
+msgid "Prioritise critical flows and processes"
+msgstr "Prioriser les flux et processus critiques"
+
+msgid "Inform users of the degraded mode"
+msgstr "Informer les utilisateurs du mode dégradé"
+
+msgid "Analyse logs to identify the instability pattern"
+msgstr "Analyser les logs pour identifier le pattern d'instabilité"
+
+msgid "Down — unavailable"
+msgstr "HS — indisponible"
 
 msgid "Physical"
 msgstr "Physique"
@@ -640,3 +812,36 @@ msgstr "Flux sans protocole"
 
 msgid "Incomplete technical documentation"
 msgstr "Documentation technique incomplète"
+
+msgid "You do not have permission to create applications."
+msgstr "Vous n'avez pas la permission de créer des applications."
+
+msgid "You do not have permission to create application flows."
+msgstr "Vous n'avez pas la permission de créer des flux applicatifs."
+
+msgid ""
+"You do not have permission to create the sample infrastructure (virtual "
+"machines, VLANs, prefixes, IP addresses, tags)."
+msgstr ""
+"Vous n'avez pas la permission de créer l'infrastructure d'exemple (machines "
+"virtuelles, VLAN, préfixes, adresses IP, tags)."
+
+msgid ""
+"This site does not exist and you do not have permission to create sites."
+msgstr ""
+"Ce site n'existe pas et vous n'avez pas la permission de créer des sites."
+
+msgid "Establishment (ID)"
+msgstr "Établissement (ID)"
+
+msgid "Domain (ID)"
+msgstr "Domaine (ID)"
+
+msgid "Process (ID)"
+msgstr "Processus (ID)"
+
+msgid "Source application (ID)"
+msgstr "Application source (ID)"
+
+msgid "Target application (ID)"
+msgstr "Application cible (ID)"

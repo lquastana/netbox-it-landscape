@@ -1,6 +1,14 @@
 from django.utils.translation import gettext_lazy as _
 from netbox.plugins import PluginMenu, PluginMenuButton, PluginMenuItem
 
+cascade_items = (
+    PluginMenuItem(
+        link='plugins:netbox_it_landscape:cascade_simulator',
+        link_text=_('Impact simulator'),
+        permissions=['netbox_it_landscape.view_application'],
+    ),
+)
+
 cartography_items = (
     PluginMenuItem(
         link='plugins:netbox_it_landscape:kpi_landscape',
@@ -97,6 +105,7 @@ menu = PluginMenu(
     groups=(
         (_('Cartography'), cartography_items),
         (_('Referential'), referential_items),
+        (_('Cascade Impact'), cascade_items),
         (_('Administration'), setup_items),
     ),
     icon_class='mdi mdi-sitemap',

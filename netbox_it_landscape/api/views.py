@@ -1,7 +1,12 @@
 from netbox.api.viewsets import NetBoxModelViewSet
 
 from .. import filtersets
-from ..models import Application, ApplicationFlow, BusinessDomain, BusinessProcess
+from ..models import (
+    Application,
+    ApplicationFlow,
+    BusinessDomain,
+    BusinessProcess,
+)
 from . import serializers
 
 

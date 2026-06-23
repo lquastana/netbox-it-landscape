@@ -3,7 +3,12 @@ from netbox.api.serializers import NetBoxModelSerializer
 from rest_framework import serializers
 from virtualization.api.serializers import VirtualMachineSerializer
 
-from ..models import Application, ApplicationFlow, BusinessDomain, BusinessProcess
+from ..models import (
+    Application,
+    ApplicationFlow,
+    BusinessDomain,
+    BusinessProcess,
+)
 
 
 class BusinessDomainSerializer(NetBoxModelSerializer):

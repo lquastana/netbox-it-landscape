@@ -4,7 +4,7 @@ from .models import Application, ApplicationFlow, BusinessDomain
 
 
 class ServerApplicationsPanel(PluginTemplateExtension):
-    """Panneau « Applications » sur les pages VM et équipement."""
+    """Applications panel on VM and device detail pages."""
     models = ['virtualization.virtualmachine', 'dcim.device']
 
     def right_page(self):
@@ -20,7 +20,7 @@ class ServerApplicationsPanel(PluginTemplateExtension):
 
 
 class SiteLandscapePanel(PluginTemplateExtension):
-    """Panneau « IT Landscape » sur la page d'un site (établissement)."""
+    """IT Landscape panel on Site detail pages."""
     models = ['dcim.site']
 
     def right_page(self):
@@ -38,4 +38,7 @@ class SiteLandscapePanel(PluginTemplateExtension):
         })
 
 
-template_extensions = [ServerApplicationsPanel, SiteLandscapePanel]
+template_extensions = [
+    ServerApplicationsPanel,
+    SiteLandscapePanel,
+]

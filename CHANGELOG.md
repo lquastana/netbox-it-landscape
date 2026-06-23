@@ -3,6 +3,26 @@
 All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.3.0] - 2026-06-17
+
+### Added
+- **Cascade impact simulator** (`/cascade/simulateur/`): build an incident
+  scenario from one or more failed components (application, application flow,
+  virtual machine, device, hosting provider) with a severity per component
+  (down / degraded / latency / intermittent). The simulator propagates the
+  impact through application flows (BFS, attenuated by depth and interface
+  type) and reports impacted applications and business processes grouped by
+  site, blocked flows, the causes per application and recommended actions.
+  Read-only, gated by the `view_application` permission.
+- Tests for the cascade simulator (permission gating, empty scenario, BFS
+  propagation), bringing the suite to 19 tests.
+
+### Fixed
+- Cascade simulator: adding a second component or clearing the scenario no
+  longer breaks the rendering of the selected-components list.
+- French translation pass: corrected stale/duplicated strings and translated
+  the cascade simulator UI and filter labels.
+
 ## [0.2.0] - 2026-06-12
 
 ### Added

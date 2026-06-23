@@ -1,4 +1,4 @@
-﻿from dcim.models import Device, Site
+from dcim.models import Device, Site
 from django import forms
 from django.utils.translation import gettext_lazy as _
 from netbox.forms import NetBoxModelFilterSetForm, NetBoxModelForm
@@ -9,8 +9,16 @@ from utilities.forms.fields import (
 )
 from virtualization.models import VirtualMachine
 
-from .choices import CriticalityChoices, InterfaceTypeChoices
-from .models import Application, ApplicationFlow, BusinessDomain, BusinessProcess
+from .choices import (
+    CriticalityChoices,
+    InterfaceTypeChoices,
+)
+from .models import (
+    Application,
+    ApplicationFlow,
+    BusinessDomain,
+    BusinessProcess,
+)
 
 #
 # Business domains
