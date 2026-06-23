@@ -1,4 +1,5 @@
 from .base import BaseLandscapeView  # noqa: F401
+from .cascade import CascadeSimulatorView  # noqa: F401
 from .crud import (  # noqa: F401
     ApplicationBulkDeleteView,
     ApplicationDeleteView,

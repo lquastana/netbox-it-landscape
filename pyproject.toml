@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "netbox-it-landscape"
-version = "0.2.0"
-description = "NetBox plugin for application landscape mapping, KPIs, facility comparison, and sector setup bundles"
+version = "0.3.0"
+description = "NetBox plugin for application landscape mapping, KPIs, facility comparison, cascade impact simulation, and sector setup bundles"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"

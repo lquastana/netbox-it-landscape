@@ -1,6 +1,11 @@
 from netbox.search import SearchIndex, register_search
 
-from .models import Application, ApplicationFlow, BusinessDomain, BusinessProcess
+from .models import (
+    Application,
+    ApplicationFlow,
+    BusinessDomain,
+    BusinessProcess,
+)
 
 
 @register_search

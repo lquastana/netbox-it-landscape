@@ -1,8 +1,13 @@
-﻿import django_tables2 as tables
+import django_tables2 as tables
 from django.utils.translation import gettext_lazy as _
 from netbox.tables import ChoiceFieldColumn, NetBoxTable, columns
 
-from .models import Application, ApplicationFlow, BusinessDomain, BusinessProcess
+from .models import (
+    Application,
+    ApplicationFlow,
+    BusinessDomain,
+    BusinessProcess,
+)
 
 
 class BusinessDomainTable(NetBoxTable):

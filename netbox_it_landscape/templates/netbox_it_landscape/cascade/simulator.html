@@ -1,0 +1,356 @@
+{% extends 'base/layout.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Incident Impact Simulator" %}{% endblock %}
+
+{% block content %}
+<style>
+/* ── Layout ── */
+.sim-layout { display: grid; grid-template-columns: 340px 1fr; gap: 1.25rem; align-items: start; }
+@media (max-width: 900px) { .sim-layout { grid-template-columns: 1fr; } }
+
+/* ── Component selector ── */
+.sim-panel { border: 1px solid var(--tblr-border-color); border-radius: .6rem; background: var(--tblr-bg-surface); }
+.sim-panel-header { padding: .65rem 1rem; border-bottom: 1px solid var(--tblr-border-color); font-weight: 600; font-size: .88rem; display: flex; align-items: center; gap: .5rem; }
+.sim-panel-body { padding: .85rem 1rem; }
+
+.sim-component-row { display: flex; align-items: center; gap: .4rem; padding: .4rem .6rem; border-radius: .4rem; margin-bottom: .35rem; font-size: .82rem; background: var(--tblr-bg-surface-secondary, #f8f9fa); }
+.sim-component-row .status-badge { flex-shrink: 0; min-width: 90px; text-align: center; }
+.sim-component-remove { margin-left: auto; background: none; border: none; color: #9ca3af; cursor: pointer; padding: 0 .2rem; font-size: 1rem; line-height: 1; }
+.sim-component-remove:hover { color: #dc2626; }
+
+/* ── Results ── */
+.sim-kpi-row { display: flex; flex-wrap: wrap; gap: .7rem; margin-bottom: 1rem; }
+.sim-kpi { flex: 1 1 120px; border: 1px solid var(--tblr-border-color); border-radius: .5rem; padding: .65rem .85rem; background: var(--tblr-bg-surface); }
+.sim-kpi-val { font-size: 1.5rem; font-weight: 700; line-height: 1.1; }
+.sim-kpi-lbl { font-size: .72rem; color: var(--tblr-muted); margin-top: .1rem; }
+
+.sim-app-card { border: 1px solid var(--tblr-border-color); border-radius: .5rem; margin-bottom: .6rem; background: var(--tblr-bg-surface); overflow: hidden; }
+.sim-app-header { display: grid; grid-template-columns: 1fr auto auto; gap: .5rem; align-items: center; padding: .5rem .85rem; border-bottom: 1px solid var(--tblr-border-color); font-size: .85rem; }
+.sim-app-header strong { font-size: .88rem; }
+.sim-proc-row { display: flex; align-items: center; gap: .5rem; padding: .35rem .85rem; border-bottom: 1px solid var(--tblr-border-color); font-size: .79rem; color: var(--tblr-muted); }
+.sim-proc-row:last-child { border-bottom: none; }
+.sim-cause-list { padding: .35rem .85rem; font-size: .75rem; color: var(--tblr-muted); background: var(--tblr-bg-surface-secondary, #f8f9fa); }
+
+.sim-actions-card { border-left: 3px solid var(--tblr-primary); padding: .5rem .85rem; background: var(--tblr-bg-surface); margin-bottom: .5rem; font-size: .79rem; }
+.sim-actions-card li { margin-bottom: .2rem; }
+
+.alert-risk { border-left: 4px solid #dc2626; padding: .5rem .9rem; background: #fff5f5; border-radius: 0 .4rem .4rem 0; margin-bottom: .7rem; font-size: .82rem; }
+
+/* Status colors */
+.status-hs { background: #dc2626; color: #fff; }
+.status-degrade { background: #ea580c; color: #fff; }
+.status-latence { background: #2563eb; color: #fff; }
+.status-intermittent { background: #7c3aed; color: #fff; }
+</style>
+
+<div class="sim-layout">
+
+  <!-- ── Left panel: component selector ── -->
+  <div>
+    <div class="sim-panel mb-3">
+      <div class="sim-panel-header">
+        <i class="mdi mdi-lightning-bolt"></i>
+        {% trans "Add a failed component" %}
+      </div>
+      <div class="sim-panel-body">
+        <form id="add-form">
+          <div class="mb-2">
+            <label class="form-label mb-1" style="font-size:.78rem;">{% trans "Component type" %}</label>
+            <select id="comp-type" class="form-select form-select-sm" onchange="updateSelector()">
+              <option value="application">{% trans "Application" %}</option>
+              <option value="flow">{% trans "Application flow" %}</option>
+              <option value="vm">{% trans "Virtual machine" %}</option>
+              <option value="device">{% trans "Device" %}</option>
+              <option value="hosting">{% trans "Hosting provider" %}</option>
+            </select>
+          </div>
+
+          <div class="mb-2" id="sel-application">
+            <label class="form-label mb-1" style="font-size:.78rem;">{% trans "Application" %}</label>
+            <select id="val-application" class="form-select form-select-sm">
+              <option value="">—</option>
+              {% for app in applications %}
+              <option value="{{ app.pk }}" data-label="{{ app.name }}">{{ app.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-2 d-none" id="sel-flow">
+            <label class="form-label mb-1" style="font-size:.78rem;">{% trans "Flow" %}</label>
+            <select id="val-flow" class="form-select form-select-sm">
+              <option value="">—</option>
+              {% for flow in flows %}
+              <option value="{{ flow.pk }}" data-label="{{ flow.source.name }} → {{ flow.target.name }}{% if flow.flow_id %} ({{ flow.flow_id }}){% endif %}">
+                {{ flow.source.name }} → {{ flow.target.name }}{% if flow.flow_id %} ({{ flow.flow_id }}){% endif %}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-2 d-none" id="sel-vm">
+            <label class="form-label mb-1" style="font-size:.78rem;">{% trans "Virtual machine" %}</label>
+            <select id="val-vm" class="form-select form-select-sm">
+              <option value="">—</option>
+              {% for vm in vms %}
+              <option value="{{ vm.pk }}" data-label="{{ vm.name }}">{{ vm.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-2 d-none" id="sel-device">
+            <label class="form-label mb-1" style="font-size:.78rem;">{% trans "Device" %}</label>
+            <select id="val-device" class="form-select form-select-sm">
+              <option value="">—</option>
+              {% for dev in devices %}
+              <option value="{{ dev.pk }}" data-label="{{ dev.name }}">{{ dev.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-2 d-none" id="sel-hosting">
+            <label class="form-label mb-1" style="font-size:.78rem;">{% trans "Hosting provider" %}</label>
+            <select id="val-hosting" class="form-select form-select-sm">
+              <option value="">—</option>
+              {% for h in hosting_values %}
+              <option value="{{ h }}" data-label="{% trans 'Hosting provider' %}: {{ h }}">{{ h }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label mb-1" style="font-size:.78rem;">{% trans "Incident status" %}</label>
+            <select id="comp-status" class="form-select form-select-sm">
+              {% for val, label in status_options %}
+              <option value="{{ val }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <button type="button" class="btn btn-sm btn-primary w-100" onclick="addComponent()">
+            <i class="mdi mdi-plus-thick"></i> {% trans "Add to scenario" %}
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Selected components -->
+    <div class="sim-panel mb-3">
+      <div class="sim-panel-header">
+        <i class="mdi mdi-alert-circle-outline"></i>
+        {% trans "Scenario" %}
+        <span class="badge text-bg-secondary ms-auto" id="comp-count">0</span>
+      </div>
+      <div class="sim-panel-body p-2" id="components-list">
+        <p class="text-muted mb-0 text-center" style="font-size:.8rem;" id="no-comp-msg">
+          {% trans "No component added yet" %}
+        </p>
+      </div>
+      <div class="px-3 pb-3">
+        <button type="button" id="run-btn" class="btn btn-danger w-100 d-none" onclick="runSimulation()">
+          <i class="mdi mdi-lightning-bolt"></i> {% trans "Simulate" %}
+        </button>
+      </div>
+    </div>
+
+    {% if analysis %}
+    <div class="sim-panel">
+      <div class="sim-panel-header"><i class="mdi mdi-pipe-disconnected"></i> {% trans "Blocked flows" %} ({{ analysis.total_flows }})</div>
+      <div class="sim-panel-body p-0">
+        {% if analysis.blocked_flows %}
+        <ul class="list-unstyled mb-0" style="font-size:.79rem;">
+          {% for flow in analysis.blocked_flows %}
+          <li class="px-3 py-2 border-bottom">
+            <a href="{{ flow.get_absolute_url }}">
+              {{ flow.source.name }} → {{ flow.target.name }}
+            </a>
+            {% if flow.protocol %}<span class="text-muted">({{ flow.protocol }})</span>{% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted px-3 py-2 mb-0" style="font-size:.8rem;">{% trans "No flows blocked." %}</p>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ── Right panel: results ── -->
+  <div>
+    {% if analysis %}
+
+    <!-- KPI row -->
+    <div class="sim-kpi-row">
+      <div class="sim-kpi">
+        <div class="sim-kpi-val {% if analysis.total_apps %}text-danger{% endif %}">{{ analysis.total_apps }}</div>
+        <div class="sim-kpi-lbl">{% trans "Impacted apps" %}</div>
+      </div>
+      <div class="sim-kpi">
+        <div class="sim-kpi-val {% if analysis.total_processes %}text-danger{% endif %}">{{ analysis.total_processes }}</div>
+        <div class="sim-kpi-lbl">{% trans "Impacted processes" %}</div>
+      </div>
+      <div class="sim-kpi">
+        <div class="sim-kpi-val">{{ analysis.total_flows }}</div>
+        <div class="sim-kpi-lbl">{% trans "Blocked flows" %}</div>
+      </div>
+    </div>
+
+    <!-- Results by site -->
+    {% for site, rows in analysis.by_site.items %}
+    <h2 class="h5 mt-3 mb-2">
+      <a href="{{ site.get_absolute_url }}">{{ site }}</a>
+      <span class="text-muted fw-normal" style="font-size:.8rem;">— {{ rows|length }} {% trans "process(es)" %}</span>
+    </h2>
+    {% for row in rows %}
+    <div class="sim-app-card">
+      <div class="sim-app-header">
+        <div>
+          <strong><a href="{{ row.app.get_absolute_url }}">{{ row.app.name }}</a></strong>
+          <span class="text-muted ms-1" style="font-size:.76rem;">{{ row.domain.name }}</span>
+        </div>
+        <span class="badge status-{{ row.status }}" style="font-size:.72rem;">{{ row.status_label }}</span>
+      </div>
+      <div class="sim-proc-row">
+        <i class="mdi mdi-cog-outline"></i>
+        <a href="{{ row.process.get_absolute_url }}">{{ row.process.name }}</a>
+      </div>
+      {% if row.causes %}
+      <div class="sim-cause-list">
+        {% trans "Causes:" %}
+        {% for cause in row.causes %}
+          <span class="badge text-bg-secondary" style="font-size:.68rem;">{{ cause.type }}</span>
+          {{ cause.label }}{% if not forloop.last %} · {% endif %}
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+    {% endfor %}
+
+    <!-- Recommended actions (deduplicated) -->
+    {% with all_actions=analysis.impacted_apps %}
+    {% if all_actions %}
+    <h2 class="h5 mt-4 mb-2"><i class="mdi mdi-check-circle-outline"></i> {% trans "Recommended actions" %}</h2>
+    {% for row in all_actions %}
+    {% if row.actions %}
+    <div class="sim-actions-card mb-2">
+      <strong style="font-size:.82rem;">{{ row.app.name }}</strong>
+      <span class="badge status-{{ row.status }} ms-1" style="font-size:.68rem;">{{ row.status_label }}</span>
+      <ul class="mt-1 mb-0 ps-3">
+        {% for action in row.actions %}<li>{{ action }}</li>{% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    {% else %}
+    <div class="text-center py-5 text-muted" id="empty-state">
+      <i class="mdi mdi-lightning-bolt-outline" style="font-size:3.5rem;"></i>
+      <p class="mt-2">{% trans "Select one or more failed components on the left, then click Simulate." %}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Hidden form used to submit the scenario -->
+<form id="sim-form" method="get" style="display:none;"></form>
+
+<script>
+const STATUS_LABELS = {
+  'hs': '{% trans "HS — Down" %}',
+  'degrade': '{% trans "Degraded" %}',
+  'latence': '{% trans "Latency" %}',
+  'intermittent': '{% trans "Intermittent" %}',
+};
+
+// Restore components from URL params
+const urlParams = new URLSearchParams(window.location.search);
+const compTypes = urlParams.getAll('comp_type');
+const compIds = urlParams.getAll('comp_id');
+const compStatuses = urlParams.getAll('comp_status');
+const compLabels = urlParams.getAll('comp_label');
+
+let components = compTypes.map((t, i) => ({
+  type: t,
+  id: compIds[i] || '',
+  status: compStatuses[i] || 'hs',
+  label: compLabels[i] || '',
+}));
+
+function updateSelector() {
+  const type = document.getElementById('comp-type').value;
+  ['application','flow','vm','device','hosting'].forEach(t => {
+    document.getElementById(`sel-${t}`).classList.toggle('d-none', t !== type);
+  });
+}
+
+function getActiveSelector() {
+  const type = document.getElementById('comp-type').value;
+  const selMap = {
+    application: 'val-application',
+    flow: 'val-flow',
+    vm: 'val-vm',
+    device: 'val-device',
+    hosting: 'val-hosting',
+  };
+  const sel = document.getElementById(selMap[type]);
+  if (!sel || !sel.value) return null;
+  const opt = sel.options[sel.selectedIndex];
+  return { id: sel.value, label: opt.getAttribute('data-label') || opt.text };
+}
+
+function addComponent() {
+  const type = document.getElementById('comp-type').value;
+  const status = document.getElementById('comp-status').value;
+  const sel = getActiveSelector();
+  if (!sel) return;
+  components.push({ type, id: sel.id, status, label: sel.label });
+  renderComponents();
+}
+
+function removeComponent(i) {
+  components.splice(i, 1);
+  renderComponents();
+}
+
+function renderComponents() {
+  const list = document.getElementById('components-list');
+  const btn = document.getElementById('run-btn');
+  const count = document.getElementById('comp-count');
+  count.textContent = components.length;
+  if (!components.length) {
+    btn.classList.add('d-none');
+    list.innerHTML = '<p class="text-muted mb-0 text-center" style="font-size:.8rem;" id="no-comp-msg">{% trans "No component added yet" %}</p>';
+    return;
+  }
+  btn.classList.remove('d-none');
+  list.innerHTML = components.map((c, i) => `
+    <div class="sim-component-row">
+      <span class="badge status-${c.status} status-badge" style="font-size:.7rem;">${STATUS_LABELS[c.status] || c.status}</span>
+      <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.label}</span>
+      <button class="sim-component-remove" onclick="removeComponent(${i})" title="{% trans 'Remove' %}">×</button>
+    </div>
+  `).join('');
+}
+
+function runSimulation() {
+  const form = document.getElementById('sim-form');
+  form.innerHTML = '';
+  components.forEach(c => {
+    const mkInput = (name, val) => { const el = document.createElement('input'); el.type='hidden'; el.name=name; el.value=val; form.appendChild(el); };
+    mkInput('comp_type', c.type);
+    mkInput('comp_id', c.id);
+    mkInput('comp_status', c.status);
+    mkInput('comp_label', c.label);
+  });
+  form.submit();
+}
+
+// Init
+updateSelector();
+renderComponents();
+</script>
+{% endblock %}

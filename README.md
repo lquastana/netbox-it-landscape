@@ -44,6 +44,12 @@ tags, and contextual panels injected on Site / VM / Device pages.
   matrix (Jaccard), already-mutualized applications, **convergence
   opportunities** (same process, different applications), facility-specific
   applications.
+- **Cascade impact simulator** (`/plugins/it-landscape/cascade/simulateur/`):
+  build an incident scenario from one or more failed components (application,
+  flow, VM, device, hosting provider) with a severity each; the impact is
+  propagated through application flows and reported as impacted applications
+  and processes grouped by site, blocked flows, causes and recommended
+  actions.
 - **Setup wizard** (`/plugins/it-landscape/initialisation/`): ready-to-use
   modeling bundles — **Hospital IS (SIH)** (admissions, EHR, pharmacy,
   imaging… with HL7/DICOM flows through an EAI) and **Manufacturing** (ERP,
