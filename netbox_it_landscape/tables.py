@@ -46,6 +46,14 @@ SITE_LIST_TEMPLATE = """
 {% endfor %}
 """
 
+AUTH_MODES_TEMPLATE = """
+{% for label in record.get_authentication_modes_display %}
+  <span class="badge text-bg-blue">{{ label }}</span>
+{% empty %}
+  &mdash;
+{% endfor %}
+"""
+
 
 class ApplicationTable(NetBoxTable):
     name = tables.Column(linkify=True, verbose_name=_('Name'))
@@ -57,16 +65,26 @@ class ApplicationTable(NetBoxTable):
     )
     is_multi_site = columns.BooleanColumn(verbose_name=_('Multi-site'), orderable=False)
     criticality = ChoiceFieldColumn(verbose_name=_('Criticality'))
+    authentication_primary = ChoiceFieldColumn(verbose_name=_('Primary auth'))
+    authentication_modes = tables.TemplateColumn(
+        template_code=AUTH_MODES_TEMPLATE,
+        verbose_name=_('Auth modes'),
+        orderable=False,
+    )
+    authentication_maintained = columns.BooleanColumn(verbose_name=_('Auth maintained'))
     tags = columns.TagColumn(url_name='plugins:netbox_it_landscape:application_list')
 
     class Meta(NetBoxTable.Meta):
         model = Application
         fields = (
             'pk', 'id', 'name', 'processes', 'sites', 'is_multi_site',
-            'editor', 'referent', 'hosting', 'criticality', 'tags',
+            'editor', 'referent', 'hosting', 'criticality',
+            'authentication_primary', 'authentication_modes',
+            'authentication_maintained', 'tags',
         )
         default_columns = (
             'name', 'sites', 'is_multi_site', 'editor', 'criticality',
+            'authentication_primary',
         )
 
 

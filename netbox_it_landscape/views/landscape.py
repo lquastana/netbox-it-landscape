@@ -6,6 +6,7 @@ from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _
 
 from ..choices import INTERFACE_HEX_COLORS, CriticalityChoices, InterfaceTypeChoices
+from ..maturity import proc09a_level
 from ..models import Application, ApplicationFlow, BusinessDomain, BusinessProcess
 from .base import BaseLandscapeView, interface_chips, landscape_filters
 
@@ -180,6 +181,8 @@ class KpiLandscapeView(BaseLandscapeView):
             domains = domains.filter(site_id=site_id)
             processes = processes.filter(domain__site_id=site_id)
 
+        proc09a, proc09a_stats = proc09a_level(applications)
+
         apps = list(applications)
         flows = list(flows)
         total_apps = len(apps)
@@ -203,6 +206,9 @@ class KpiLandscapeView(BaseLandscapeView):
             'multi_pct': pct(len(multi_apps), total_apps),
             'flows': total_flows,
             'server_coverage_pct': pct(len(apps_with_servers), total_apps),
+            'auth_coverage_pct': pct(
+                len([a for a in apps if a.authentication_documented]), total_apps
+            ),
             'domains': domains.count(),
             'processes': processes.count(),
         }
@@ -226,6 +232,12 @@ class KpiLandscapeView(BaseLandscapeView):
                 'label': _('Applications without business attachment'),
                 'detail': _('No associated process — invisible in the business view'),
                 'apps': [a for a in apps if not len(a.processes.all())],
+                'severity': 'orange',
+            },
+            {
+                'label': _('Applications without mapped authentication mode'),
+                'detail': _('Authentication cartography incomplete (indicator PROC-09A)'),
+                'apps': [a for a in apps if not a.authentication_documented],
                 'severity': 'orange',
             },
             {
@@ -328,6 +340,8 @@ class KpiLandscapeView(BaseLandscapeView):
 
         return render(request, self.template_name, {
             'kpis': kpis,
+            'proc09a': proc09a,
+            'proc09a_stats': proc09a_stats,
             'attention': attention,
             'criticality_donut': criticality_donut,
             'flows_by_interface': flows_by_interface,

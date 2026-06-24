@@ -14,6 +14,28 @@ class CriticalityChoices(ChoiceSet):
     ]
 
 
+class AuthenticationModeChoices(ChoiceSet):
+    """
+    Authentication modes available for a digital health service
+    (digital health security indicator PROC-09A — HospiConnect / HOP'EN 2).
+    """
+    key = 'Application.authentication_mode'
+
+    LOCAL = 'local'                       # local authentication (account owned by the service)
+    IDP_LOCAL = 'idp_local'               # delegation to a local IdP (AD/LDAP, internal SSO)
+    PSC = 'pro_sante_connect'             # Pro Santé Connect (e-CPS, sectoral health IdP)
+    HOSPICONNECT = 'hospiconnect'         # unified HospiConnect banner
+    NONE = 'none'                         # no authentication
+
+    CHOICES = [
+        (LOCAL, _('Local authentication'), 'gray'),
+        (IDP_LOCAL, _('Local IdP delegation'), 'blue'),
+        (PSC, _('Pro Santé Connect'), 'green'),
+        (HOSPICONNECT, _('HospiConnect banner'), 'teal'),
+        (NONE, _('None'), 'red'),
+    ]
+
+
 class InterfaceTypeChoices(ChoiceSet):
     key = 'ApplicationFlow.interface_type'
 

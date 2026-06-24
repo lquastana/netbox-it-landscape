@@ -1,10 +1,12 @@
-﻿from django.db import models
+﻿from django.contrib.postgres.fields import ArrayField
+from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from netbox.models import NetBoxModel
 from utilities.fields import ColorField
 
 from .choices import (
+    AuthenticationModeChoices,
     CriticalityChoices,
     InterfaceTypeChoices,
 )
@@ -116,6 +118,27 @@ class Application(NetBoxModel):
     interface_planification = models.BooleanField(_('Scheduling interface'), default=False)
     interface_autre = models.BooleanField(_('Other interface'), default=False)
 
+    # Available authentication modes (digital health security indicator PROC-09A:
+    # cartography of authentication modes available per digital health service)
+    authentication_modes = ArrayField(
+        base_field=models.CharField(max_length=30, choices=AuthenticationModeChoices),
+        verbose_name=_('Authentication modes'),
+        help_text=_('Authentication modes available for this service (PROC-09A).'),
+        blank=True, null=True,
+    )
+    authentication_primary = models.CharField(
+        _('Primary authentication mode'), max_length=30,
+        choices=AuthenticationModeChoices, blank=True,
+    )
+    authentication_maintained = models.BooleanField(
+        _('Authentication mapping maintained'), default=False,
+        help_text=_('A maintenance rule keeps the mapping applicable (PROC-09A).'),
+    )
+    authentication_notes = models.CharField(
+        _('Authentication notes'), max_length=200, blank=True,
+        help_text=_('Maintenance rule / reference identity provider.'),
+    )
+
     # Direct attachment to the NetBox infrastructure
     virtual_machines = models.ManyToManyField(
         to='virtualization.VirtualMachine',
@@ -130,7 +153,10 @@ class Application(NetBoxModel):
         verbose_name=_('Devices'),
     )
 
-    clone_fields = ('editor', 'hosting', 'criticality')
+    clone_fields = (
+        'editor', 'hosting', 'criticality',
+        'authentication_primary', 'authentication_maintained',
+    )
 
     class Meta:
         ordering = ('name',)
@@ -175,6 +201,19 @@ class Application(NetBoxModel):
         if self.interface_autre:
             labels.append(_('Other'))
         return labels
+
+    def get_authentication_primary_color(self):
+        return AuthenticationModeChoices.colors.get(self.authentication_primary)
+
+    def get_authentication_modes_display(self):
+        """Human-readable labels of the available authentication modes."""
+        labels = dict(AuthenticationModeChoices)
+        return [labels.get(m, m) for m in (self.authentication_modes or [])]
+
+    @property
+    def authentication_documented(self):
+        """True when at least one authentication mode is mapped (PROC-09A)."""
+        return bool(self.authentication_modes)
 
 
 class ApplicationFlow(NetBoxModel):

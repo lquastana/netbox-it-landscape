@@ -108,6 +108,11 @@
     <div class="itl-kpi-value">{{ kpis.server_coverage_pct }}%</div>
     <div class="itl-kpi-sub">{% trans "applications with at least one attached server" %}</div>
   </div>
+  <div class="itl-kpi is-green">
+    <div class="itl-kpi-label">{% trans "Authentication maturity" %}</div>
+    <div class="itl-kpi-value">{% trans "Level" %} {{ proc09a }}/4</div>
+    <div class="itl-kpi-sub">{% blocktrans with cov=proc09a_stats.coverage_pct maint=proc09a_stats.maintained_pct %}{{ cov }}% mapped · {{ maint }}% maintained{% endblocktrans %}</div>
+  </div>
 </div>
 
 <div class="itl-panel-grid">

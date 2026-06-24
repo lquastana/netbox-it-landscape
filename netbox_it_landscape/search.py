@@ -36,8 +36,9 @@ class ApplicationIndex(SearchIndex):
         ('description', 500),
         ('editor', 300),
         ('hosting', 300),
+        ('authentication_notes', 500),
     )
-    display_attrs = ('editor', 'criticality')
+    display_attrs = ('editor', 'criticality', 'authentication_primary')
 
 
 @register_search
