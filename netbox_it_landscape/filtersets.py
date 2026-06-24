@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from netbox.filtersets import NetBoxModelFilterSet
 
 from .choices import (
+    AuthenticationModeChoices,
     CriticalityChoices,
     InterfaceTypeChoices,
 )
@@ -74,6 +75,22 @@ class ApplicationFilterSet(NetBoxModelFilterSet):
     criticality = django_filters.MultipleChoiceFilter(
         choices=CriticalityChoices,
     )
+    authentication_modes = django_filters.MultipleChoiceFilter(
+        choices=AuthenticationModeChoices,
+        method='filter_authentication_modes',
+        label=_('Authentication modes'),
+    )
+    authentication_primary = django_filters.MultipleChoiceFilter(
+        choices=AuthenticationModeChoices,
+        label=_('Primary authentication mode'),
+    )
+    authentication_maintained = django_filters.BooleanFilter(
+        label=_('Authentication mapping maintained'),
+    )
+    authentication_documented = django_filters.BooleanFilter(
+        method='filter_authentication_documented',
+        label=_('Authentication documented'),
+    )
 
     class Meta:
         model = Application
@@ -85,6 +102,22 @@ class ApplicationFilterSet(NetBoxModelFilterSet):
             | Q(description__icontains=value)
             | Q(editor__icontains=value)
         )
+
+    def filter_authentication_modes(self, queryset, name, value):
+        """Applications exposing any of the selected modes (ArrayField contains)."""
+        if not value:
+            return queryset
+        q = Q()
+        for mode in value:
+            q |= Q(authentication_modes__contains=[mode])
+        return queryset.filter(q)
+
+    def filter_authentication_documented(self, queryset, name, value):
+        """Applications with at least one mapped authentication mode (PROC-09A)."""
+        documented = Q(authentication_modes__len__gt=0)
+        if value:
+            return queryset.filter(documented)
+        return queryset.exclude(documented)
 
 
 class ApplicationFlowFilterSet(NetBoxModelFilterSet):

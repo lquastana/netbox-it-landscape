@@ -13,7 +13,7 @@ reference them inside the bundle definition.
 """
 from django.utils.translation import gettext_lazy as _
 
-from .choices import CriticalityChoices, InterfaceTypeChoices
+from .choices import AuthenticationModeChoices, CriticalityChoices, InterfaceTypeChoices
 
 C = CriticalityChoices.CRITICAL
 S = CriticalityChoices.STANDARD
@@ -22,6 +22,12 @@ MED = InterfaceTypeChoices.MEDICALE
 FAC = InterfaceTypeChoices.FACTURATION
 PLA = InterfaceTypeChoices.PLANIFICATION
 AUT = InterfaceTypeChoices.AUTRE
+
+# Authentication modes (indicator PROC-09A), consumed by seeding.py
+AU_LOCAL = AuthenticationModeChoices.LOCAL
+AU_IDP = AuthenticationModeChoices.IDP_LOCAL
+AU_PSC = AuthenticationModeChoices.PSC
+AU_HC = AuthenticationModeChoices.HOSPICONNECT
 
 
 SIH_BUNDLE = {
@@ -86,12 +92,12 @@ SIH_BUNDLE = {
         ]},
     ],
     'applications': [
-        {'key': 'GAP', 'name': 'Maincare iGAP', 'process': ('DP Administrative', 'GAP'), 'editor': 'Maincare', 'criticality': C, 'interfaces': [ADM, FAC], 'description': 'Gestion des admissions, identités et mouvements.'},
-        {'key': 'ORB', 'name': 'ORBIS DPI', 'process': ('DP Commun', 'DPI'), 'editor': 'Dedalus', 'criticality': C, 'interfaces': [ADM, MED, PLA, AUT], 'description': 'Dossier patient informatisé et prescription connectée.'},
+        {'key': 'GAP', 'name': 'Maincare iGAP', 'process': ('DP Administrative', 'GAP'), 'editor': 'Maincare', 'criticality': C, 'interfaces': [ADM, FAC], 'auth': [AU_IDP], 'auth_primary': AU_IDP, 'auth_maintained': True, 'auth_notes': 'SSO via AD — revue trimestrielle des habilitations.', 'description': 'Gestion des admissions, identités et mouvements.'},
+        {'key': 'ORB', 'name': 'ORBIS DPI', 'process': ('DP Commun', 'DPI'), 'editor': 'Dedalus', 'criticality': C, 'interfaces': [ADM, MED, PLA, AUT], 'auth': [AU_IDP, AU_PSC, AU_HC], 'auth_primary': AU_HC, 'auth_maintained': True, 'auth_notes': 'Bannière HospiConnect (PSC + IdP local).', 'description': 'Dossier patient informatisé et prescription connectée.'},
         {'key': 'ORP', 'name': 'ORBIS Planning', 'process': ('DP Commun', 'DPI'), 'editor': 'Dedalus', 'criticality': S, 'interfaces': [ADM, PLA], 'description': 'Planification des ressources médicales et des lits.'},
         {'key': 'PYX', 'name': 'BD Pyxis MedStation', 'process': ('DP Commun', 'Pharmacie'), 'editor': 'Becton Dickinson', 'criticality': S, 'interfaces': [ADM], 'description': 'Armoires sécurisées de dispensation.'},
         {'key': 'SIL', 'name': 'Sillage Médicament', 'process': ('DP Commun', 'Pharmacie'), 'editor': 'SIB', 'criticality': S, 'interfaces': [MED], 'description': 'Circuit du médicament.'},
-        {'key': 'URG', 'name': 'ResUrgences', 'process': ('DP Spécialités', 'Urgences'), 'editor': 'Berger-Levrault', 'criticality': C, 'interfaces': [MED, ADM], 'description': 'Dossier de prise en charge des urgences.'},
+        {'key': 'URG', 'name': 'ResUrgences', 'process': ('DP Spécialités', 'Urgences'), 'editor': 'Berger-Levrault', 'criticality': C, 'interfaces': [MED, ADM], 'auth': [AU_IDP], 'description': 'Dossier de prise en charge des urgences.'},
         {'key': 'HAD', 'name': 'AntHADine', 'process': ('DP Spécialités', 'Hospitalisation à domicile'), 'editor': 'Berger-Levrault', 'criticality': S, 'interfaces': [MED], 'description': 'Dossier HAD et planification des tournées.'},
         {'key': 'NOM', 'name': 'NomadeCare', 'process': ('DP Spécialités', 'Hospitalisation à domicile'), 'editor': 'Telecom Santé', 'criticality': S, 'interfaces': [MED], 'description': 'Application mobile de soins à domicile.'},
         {'key': 'CAR', 'name': 'CardioReport', 'process': ('DP Spécialités', 'Spécialités médicales'), 'editor': 'Viseus', 'criticality': S, 'interfaces': [MED, PLA], 'description': 'Comptes rendus de cardiologie.'},
@@ -101,19 +107,19 @@ SIH_BUNDLE = {
         {'key': 'SAX', 'name': 'Sage X3 Stock', 'process': ('Support & logistique', 'GEF / Inventaire'), 'editor': 'Sage', 'criticality': S, 'interfaces': [ADM], 'description': 'Gestion des stocks et approvisionnements.'},
         {'key': 'CRS', 'name': 'Carestream RIS', 'process': ('Dossier médico-techniques', 'Imagerie'), 'editor': 'Carestream', 'criticality': S, 'interfaces': [MED], 'description': "Gestion des examens d'imagerie."},
         {'key': 'SEC', 'name': 'Sectra PACS', 'process': ('Dossier médico-techniques', 'Imagerie'), 'editor': 'Sectra', 'criticality': C, 'interfaces': [MED], 'description': 'Archivage et diffusion des images.'},
-        {'key': 'DOC', 'name': 'Doctolib Téléconsultation', 'process': ('Dossier médico-techniques', 'Télémédecine'), 'editor': 'Doctolib', 'criticality': S, 'interfaces': [MED], 'hosting': 'SaaS', 'description': 'Téléconsultations et prise de rendez-vous.'},
-        {'key': 'M36', 'name': 'Microsoft 365', 'process': ('Communication / Collaboration', 'Bureautique'), 'editor': 'Microsoft', 'criticality': C, 'interfaces': [AUT], 'hosting': 'SaaS', 'description': 'Messagerie, bureautique et collaboration.'},
-        {'key': 'WPR', 'name': 'WordPress', 'process': ('Communication / Collaboration', 'Portail web externe'), 'editor': 'Automattic', 'criticality': S, 'interfaces': [AUT], 'description': 'Site internet institutionnel.'},
+        {'key': 'DOC', 'name': 'Doctolib Téléconsultation', 'process': ('Dossier médico-techniques', 'Télémédecine'), 'editor': 'Doctolib', 'criticality': S, 'interfaces': [MED], 'auth': [AU_PSC], 'hosting': 'SaaS', 'description': 'Téléconsultations et prise de rendez-vous.'},
+        {'key': 'M36', 'name': 'Microsoft 365', 'process': ('Communication / Collaboration', 'Bureautique'), 'editor': 'Microsoft', 'criticality': C, 'interfaces': [AUT], 'auth': [AU_IDP], 'auth_primary': AU_IDP, 'auth_maintained': True, 'auth_notes': 'SSO Entra ID fédéré.', 'hosting': 'SaaS', 'description': 'Messagerie, bureautique et collaboration.'},
+        {'key': 'WPR', 'name': 'WordPress', 'process': ('Communication / Collaboration', 'Portail web externe'), 'editor': 'Automattic', 'criticality': S, 'interfaces': [AUT], 'auth': [AU_LOCAL], 'description': 'Site internet institutionnel.'},
         {'key': 'DWR', 'name': 'DocuWare', 'process': ('Communication / Collaboration', 'GED'), 'editor': 'DocuWare', 'criticality': S, 'interfaces': [ADM], 'description': 'Gestion électronique de documents.'},
         {'key': 'CGR', 'name': 'Cegid HR', 'process': ('Gestion', 'RH'), 'editor': 'Cegid', 'criticality': S, 'interfaces': [ADM], 'description': 'Gestion des ressources humaines.'},
         {'key': 'OCT', 'name': 'Octime', 'process': ('Gestion', 'RH'), 'editor': 'Octime', 'criticality': S, 'interfaces': [ADM], 'description': 'Gestion des temps et plannings.'},
         {'key': 'CGP', 'name': 'Cegid Payroll', 'process': ('Gestion', 'Paie'), 'editor': 'Cegid', 'criticality': C, 'interfaces': [ADM, FAC], 'description': 'Paie des personnels.'},
         {'key': 'SGE', 'name': 'Sage 1000', 'process': ('Gestion', 'Finances / Budget'), 'editor': 'Sage', 'criticality': S, 'interfaces': [ADM, FAC], 'description': 'Comptabilité et finances.'},
-        {'key': 'IFC', 'name': 'iFact', 'process': ('Gestion', 'Facturation'), 'editor': 'CPage', 'criticality': C, 'interfaces': [FAC, ADM], 'description': 'Facturation des séjours et actes.'},
+        {'key': 'IFC', 'name': 'iFact', 'process': ('Gestion', 'Facturation'), 'editor': 'CPage', 'criticality': C, 'interfaces': [FAC, ADM], 'auth': [AU_IDP], 'description': 'Facturation des séjours et actes.'},
         {'key': 'BLU', 'name': 'BlueKanGo QHSE', 'process': ('Qualité & Risques', 'Qualité / Risque'), 'editor': 'BlueKanGo', 'criticality': S, 'interfaces': [AUT], 'hosting': 'SaaS', 'description': 'Qualité, risques et signalements.'},
         {'key': 'MYR', 'name': 'MyReport', 'process': ('Qualité & Risques', 'Contrôle de gestion'), 'editor': 'Report One', 'criticality': S, 'interfaces': [ADM], 'description': 'Reporting de gestion.'},
         {'key': 'TAB', 'name': 'Tableau', 'process': ('Efficience / PMSI', 'Requêteur'), 'editor': 'Salesforce', 'criticality': S, 'interfaces': [ADM], 'description': 'Analyse et visualisation de données.'},
-        {'key': 'MAI', 'name': 'Mailiz', 'process': ('Échange de données', 'MSS'), 'editor': 'ANS', 'criticality': S, 'interfaces': [MED, ADM], 'hosting': 'SaaS', 'description': 'Messagerie de santé sécurisée.'},
+        {'key': 'MAI', 'name': 'Mailiz', 'process': ('Échange de données', 'MSS'), 'editor': 'ANS', 'criticality': S, 'interfaces': [MED, ADM], 'auth': [AU_PSC], 'auth_primary': AU_PSC, 'auth_maintained': True, 'auth_notes': 'e-CPS via Pro Santé Connect.', 'hosting': 'SaaS', 'description': 'Messagerie de santé sécurisée.'},
         {'key': 'ENO', 'name': 'Enovacom Integration Engine', 'process': ('Échange de données', 'EAI'), 'editor': 'Enovacom', 'criticality': C, 'interfaces': [AUT], 'description': "Moteur d'intégration HL7."},
         {'key': 'CEN', 'name': 'Centreon', 'process': ('Outils techniques', 'Supervision SI'), 'editor': 'Centreon', 'criticality': S, 'interfaces': [AUT], 'description': 'Supervision des infrastructures.'},
         {'key': 'GLP', 'name': 'GLPI', 'process': ('Outils techniques', 'Supervision SI'), 'editor': 'Teclib', 'criticality': S, 'interfaces': [AUT], 'description': 'ITSM et gestion de parc.'},

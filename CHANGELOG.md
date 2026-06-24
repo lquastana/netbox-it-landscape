@@ -3,6 +3,34 @@
 All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.4.0] - 2026-06-23
+
+### Added
+- **Authentication modes mapping on applications** (digital health security
+  indicator **PROC-09A** — HospiConnect / HOP'EN 2). Each application now
+  carries the authentication modes it exposes (local, local IdP delegation,
+  Pro Santé Connect, HospiConnect banner, none), an optional primary mode,
+  a "mapping maintained" flag and a free-text maintenance/IdP note. Native
+  fields (replacing the custom-field approach): editable through the UI and
+  the REST API, filterable and CSV-exportable.
+  - New `AuthenticationModeChoices` choice set.
+  - `Application.authentication_modes` (multi-valued `ArrayField`),
+    `authentication_primary`, `authentication_maintained`,
+    `authentication_notes`.
+  - Application table columns (primary auth, modes, maintained) and filters
+    (by mode, by primary mode, maintained, documented).
+  - Detail card "Authentication (PROC-09A)" on the application page.
+- **PROC-09A maturity level** (`maturity.proc09a_level`): a 0→4 level derived
+  from the share of applications with a documented and maintained
+  authentication mapping, surfaced on the KPI summary (overall and per site)
+  with an "applications without mapped authentication mode" attention point.
+- Setup bundles (SIH) now seed sample authentication modes to illustrate the
+  indicator out of the box.
+
+### Migrations
+- `0003_application_auth_modes`: additive schema change (one `ArrayField` +
+  three columns), no data required, no breaking change on an existing base.
+
 ## [0.3.0] - 2026-06-17
 
 ### Added

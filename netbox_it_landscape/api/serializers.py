@@ -59,6 +59,8 @@ class ApplicationSerializer(NetBoxModelSerializer):
             'interface_administrative', 'interface_medicale',
             'interface_facturation', 'interface_planification',
             'interface_autre',
+            'authentication_modes', 'authentication_primary',
+            'authentication_maintained', 'authentication_notes',
             'virtual_machines', 'devices',
             'tags', 'custom_fields', 'created', 'last_updated',
         )

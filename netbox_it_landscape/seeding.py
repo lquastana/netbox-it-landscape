@@ -63,6 +63,7 @@ def apply_bundle(site, bundle, with_apps=True, with_infra=True, with_flows=True)
     if with_apps:
         for entry in bundle['applications']:
             interfaces = entry.get('interfaces', [])
+            auth_modes = entry.get('auth', [])
             defaults = {
                 'description': entry.get('description', '')[:500],
                 'editor': entry.get('editor', '')[:100],
@@ -73,6 +74,10 @@ def apply_bundle(site, bundle, with_apps=True, with_infra=True, with_flows=True)
                 'interface_facturation': 'facturation' in interfaces,
                 'interface_planification': 'planification' in interfaces,
                 'interface_autre': 'autre' in interfaces,
+                'authentication_modes': auth_modes or None,
+                'authentication_primary': entry.get('auth_primary', ''),
+                'authentication_maintained': entry.get('auth_maintained', False),
+                'authentication_notes': entry.get('auth_notes', '')[:200],
             }
             app, created = Application.objects.get_or_create(
                 name=entry['name'], defaults=defaults,

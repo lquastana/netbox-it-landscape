@@ -2,6 +2,7 @@ from dcim.models import Device, Site
 from django import forms
 from django.utils.translation import gettext_lazy as _
 from netbox.forms import NetBoxModelFilterSetForm, NetBoxModelForm
+from utilities.forms import BOOLEAN_WITH_BLANK_CHOICES
 from utilities.forms.fields import (
     DynamicModelChoiceField,
     DynamicModelMultipleChoiceField,
@@ -10,6 +11,7 @@ from utilities.forms.fields import (
 from virtualization.models import VirtualMachine
 
 from .choices import (
+    AuthenticationModeChoices,
     CriticalityChoices,
     InterfaceTypeChoices,
 )
@@ -99,6 +101,12 @@ class ApplicationForm(NetBoxModelForm):
         required=False,
         label=_('Devices'),
     )
+    authentication_modes = forms.MultipleChoiceField(
+        choices=AuthenticationModeChoices,
+        required=False,
+        label=_('Authentication modes'),
+        help_text=_('Available modes (PROC-09A).'),
+    )
 
     class Meta:
         model = Application
@@ -109,6 +117,8 @@ class ApplicationForm(NetBoxModelForm):
             'interface_administrative', 'interface_medicale',
             'interface_facturation', 'interface_planification',
             'interface_autre',
+            'authentication_modes', 'authentication_primary',
+            'authentication_maintained', 'authentication_notes',
             'virtual_machines', 'devices', 'tags',
         )
 
@@ -134,6 +144,21 @@ class ApplicationFilterForm(NetBoxModelFilterSetForm):
         choices=CriticalityChoices,
         required=False,
         label=_('Criticality'),
+    )
+    authentication_modes = forms.MultipleChoiceField(
+        choices=AuthenticationModeChoices,
+        required=False,
+        label=_('Authentication modes'),
+    )
+    authentication_primary = forms.MultipleChoiceField(
+        choices=AuthenticationModeChoices,
+        required=False,
+        label=_('Primary authentication mode'),
+    )
+    authentication_maintained = forms.NullBooleanField(
+        required=False,
+        label=_('Authentication mapping maintained'),
+        widget=forms.Select(choices=BOOLEAN_WITH_BLANK_CHOICES),
     )
     tag = TagFilterField(model)
 

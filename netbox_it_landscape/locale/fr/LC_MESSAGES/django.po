@@ -845,3 +845,79 @@ msgstr "Application source (ID)"
 
 msgid "Target application (ID)"
 msgstr "Application cible (ID)"
+
+#
+# Authentication modes mapping — indicator PROC-09A (HospiConnect / HOP'EN 2)
+#
+msgid "Local authentication"
+msgstr "Authentification locale"
+
+msgid "Local IdP delegation"
+msgstr "Délégation à un IdP local"
+
+msgid "HospiConnect banner"
+msgstr "Bannière HospiConnect"
+
+msgid "None"
+msgstr "Aucune"
+
+msgid "Authentication modes"
+msgstr "Modes d'authentification"
+
+msgid "Authentication modes available for this service (PROC-09A)."
+msgstr "Modes d'authentification disponibles pour ce service (PROC-09A)."
+
+msgid "Available modes (PROC-09A)."
+msgstr "Modes disponibles (PROC-09A)."
+
+msgid "Primary authentication mode"
+msgstr "Mode d'authentification nominal"
+
+msgid "Authentication mapping maintained"
+msgstr "Cartographie d'authentification maintenue"
+
+msgid "A maintenance rule keeps the mapping applicable (PROC-09A)."
+msgstr "Une règle de maintien rend la cartographie applicable (PROC-09A)."
+
+msgid "Authentication notes"
+msgstr "Notes d'authentification"
+
+msgid "Maintenance rule / reference identity provider."
+msgstr "Règle de maintien / fournisseur d'identité de référence."
+
+msgid "Authentication documented"
+msgstr "Authentification documentée"
+
+msgid "Primary auth"
+msgstr "Auth. nominale"
+
+msgid "Auth modes"
+msgstr "Modes d'auth."
+
+msgid "Auth maintained"
+msgstr "Auth. maintenue"
+
+msgid "Authentication (PROC-09A)"
+msgstr "Authentification (PROC-09A)"
+
+msgid "Available authentication modes"
+msgstr "Modes d'authentification disponibles"
+
+msgid "No authentication mode mapped"
+msgstr "Aucun mode d'authentification cartographié"
+
+msgid "Authentication maturity"
+msgstr "Maturité d'authentification"
+
+msgid "Level"
+msgstr "Niveau"
+
+#, python-format
+msgid "%(cov)s%% mapped · %(maint)s%% maintained"
+msgstr "%(cov)s%% cartographiés · %(maint)s%% maintenus"
+
+msgid "Applications without mapped authentication mode"
+msgstr "Applications sans mode d'authentification cartographié"
+
+msgid "Authentication cartography incomplete (indicator PROC-09A)"
+msgstr "Cartographie de l'authentification incomplète (indicateur PROC-09A)"
