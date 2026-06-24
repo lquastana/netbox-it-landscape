@@ -50,6 +50,16 @@ tags, et panneaux contextuels injectés sur les pages Site / VM / Device.
   l'impact est propagé via les flux applicatifs et restitué sous forme
   d'applications et processus impactés regroupés par établissement, flux
   bloqués, causes et actions recommandées.
+- **Cartographie d'authentification (indicateur PROC-09A)** : chaque
+  application porte les **modes d'authentification** qu'elle expose
+  (authentification locale, délégation à un IdP local, Pro Santé Connect,
+  bannière HospiConnect, aucune), un mode nominal optionnel, un indicateur de
+  « maintien » et une note règle de maintien / IdP — la cartographie attendue
+  par l'indicateur de sécurité numérique en santé **PROC-09A** (HospiConnect /
+  HOP'EN 2). Éditable via l'UI et l'API REST, filtrable et exportable en CSV.
+  La synthèse calcule un **niveau de maturité 0→4** par établissement
+  (`maturity.proc09a_level`) avec un point d'attention sur les applications
+  non cartographiées.
 - **Assistant d'initialisation** (`/plugins/it-landscape/initialisation/`) :
   bundles de modélisation prêts à l'emploi — **SIH** (hôpital : GAP, DPI,
   pharmacie, imagerie… avec flux HL7/DICOM via un EAI) et **Industrie** (ERP,

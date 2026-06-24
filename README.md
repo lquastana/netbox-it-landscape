@@ -50,6 +50,15 @@ tags, and contextual panels injected on Site / VM / Device pages.
   propagated through application flows and reported as impacted applications
   and processes grouped by site, blocked flows, causes and recommended
   actions.
+- **Authentication mapping (indicator PROC-09A)**: each application records
+  the **authentication modes** it exposes (local, local IdP delegation,
+  Pro Santé Connect, HospiConnect banner, none), an optional primary mode, a
+  "mapping maintained" flag and a maintenance/IdP note — the cartography
+  required by the digital health security indicator **PROC-09A**
+  (HospiConnect / HOP'EN 2). Editable in the UI and the REST API, filterable
+  and CSV-exportable. The KPI summary derives a **0→4 maturity level** per
+  facility (`maturity.proc09a_level`) with an attention point on undocumented
+  applications.
 - **Setup wizard** (`/plugins/it-landscape/initialisation/`): ready-to-use
   modeling bundles — **Hospital IS (SIH)** (admissions, EHR, pharmacy,
   imaging… with HL7/DICOM flows through an EAI) and **Manufacturing** (ERP,
